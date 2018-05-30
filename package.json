@@ -1,0 +1,33 @@
+{
+  "name": "joy-js",
+  "version": "0.1.0",
+  "description": "A JavaScript interpreter for the Joy programming language",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jimf/joy-js"
+  },
+  "scripts": {
+    "lint": "standard",
+    "pretest": "npm run lint",
+    "test": "nyc tape test/*.js"
+  },
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ]
+  },
+  "keywords": [],
+  "author": "Jim Fitzpatrick",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jimf/joy-js/issues"
+  },
+  "homepage": "https://github.com/jimf/joy-js",
+  "dependencies": {},
+  "devDependencies": {
+    "nyc": "^11.8.0",
+    "standard": "^11.0.1",
+    "tape": "^4.9.0"
+  }
+}
