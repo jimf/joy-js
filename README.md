@@ -4,15 +4,23 @@ A JavaScript interpreter for the [Joy][] programming language.
 
 *Work in progress*
 
-## Installation
+## Todo
 
-Install using npm:
+- [x] Lexer
+- [ ] Parser (partially working)
+- [ ] Interpreter (in progress)
+- [ ] Demo site
 
-    $ npm install joy-js
+## How to run
 
-## Usage
+For the time being, the only way to run __joy-js__ is through Node directly.
+Demo site is planned.
 
-TODO
+    $ node
+    > Joy = require('./src/joy/joy')
+    > Joy.run('19 23 + .')
+    '42'
+    >
 
 ## License
 
