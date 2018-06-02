@@ -407,5 +407,203 @@ module.exports = {
    * min      :  N1 N2  ->  N
    * N is the minimum of numeric values N1 and N2.  Also supports float.
    */
-  min: applyToTop2(Math.min)
+  min: applyToTop2(Math.min),
+
+  /**
+   * fclose      :  S  ->
+   * Stream S is closed and removed from the stack.
+   */
+
+  /**
+   * feof      :  S  ->  S B
+   * B is the end-of-file status of stream S.
+   */
+
+  /**
+   * ferror      :  S  ->  S B
+   * B is the error status of stream S.
+   */
+
+  /**
+   * fflush      :  S  ->  S
+   * Flush stream S, forcing all buffered output to be written.
+   */
+
+  /**
+   * fgetch      :  S  ->  S C
+   * C is the next available character from stream S.
+   */
+
+  /**
+   * fgets      :  S  ->  S L
+   * L is the next available line (as a string) from stream S.
+   */
+
+  /**
+   * fopen      :  P M  ->  S
+   * The file system object with pathname P is opened with mode M (r, w, a, etc.)
+   * and stream object S is pushed; if the open fails, file:NULL is pushed.
+   */
+
+  /**
+   * fread      :  S I  ->  S L
+   * I bytes are read from the current position of stream S
+   * and returned as a list of I integers.
+   */
+
+  /**
+   * fwrite      :  S L  ->  S
+   * A list of integers are written as bytes to the current position of stream S.
+   */
+
+  /**
+   * fremove      :  P  ->  B
+   * The file system object with pathname P is removed from the file system.
+   *  is a boolean indicating success or failure.
+   */
+
+  /**
+   * frename      :  P1 P2  ->  B
+   * The file system object with pathname P1 is renamed to P2.
+   * B is a boolean indicating success or failure.
+   */
+
+  /**
+   * fput      :  S X  ->  S
+   * Writes X to stream S, pops X off stack.
+   */
+
+  /**
+   * fputch      :  S C  ->  S
+   * The character C is written to the current position of stream S.
+   */
+
+  /**
+   * fputchars      :  S "abc.."  ->  S
+   * The string abc.. (no quotes) is written to the current position of stream S.
+   */
+
+  /**
+   * fputstring      :  S "abc.."  ->  S
+   * == fputchars, as a temporary alternative.
+   */
+
+  /**
+   * fseek      :  S P W  ->  S
+   * Stream S is repositioned to position P relative to whence-point W,
+   * where W = 0, 1, 2 for beginning, current position, end respectively.
+   */
+
+  /**
+   * ftell      :  S  ->  S I
+   * I is the current position of stream S.
+   */
+
+  /**
+   * unstack      :  [X Y ..]  ->  ..Y X
+   * The list [X Y ..] becomes the new stack.
+   */
+
+  /**
+   * cons      :  X A  ->  B
+   * Aggregate B is A with a new member X (first member for sequences).
+   */
+
+  /**
+   * swons      :  A X  ->  B
+   * Aggregate B is A with a new member X (first member for sequences).
+   */
+
+  /**
+   * first      :  A  ->  F
+   * F is the first member of the non-empty aggregate A.
+   */
+
+  /**
+   * rest      :  A  ->  R
+   * R is the non-empty aggregate A with its first member removed.
+   */
+
+  /**
+   * compare      :  A B  ->  I
+   * I (=-1,0,+1) is the comparison of aggregates A and B.
+   * The values correspond to the predicates <=, =, >=.
+   */
+
+  /**
+   * at      :  A I  ->  X
+   * X (= A[I]) is the member of A at position I.
+   */
+
+  /**
+   * of      :  I A  ->  X
+   * X (= A[I]) is the I-th member of aggregate A.
+   */
+
+  /**
+   * size      :  A  ->  I
+   * Integer I is the number of elements of aggregate A.
+   */
+
+  /**
+   * opcase      :  X [..[X Xs]..]  ->  [Xs]
+   * Indexing on type of X, returns the list [Xs].
+   */
+
+  /**
+   * case      :  X [..[X Y]..]  ->  Y i
+   * Indexing on the value of X, execute the matching Y.
+   */
+
+  /**
+   * uncons      :  A  ->  F R
+   * F and R are the first and the rest of non-empty aggregate A.
+   */
+
+  /**
+   * unswons      :  A  ->  R F
+   * R and F are the rest and the first of non-empty aggregate A.
+   */
+
+  /**
+   * drop      :  A N  ->  B
+   * Aggregate B is the result of deleting the first N elements of A.
+   */
+
+  /**
+   * take      :  A N  ->  B
+   * Aggregate B is the result of retaining just the first N elements of A.
+   */
+
+  /**
+   * concat      :  S T  ->  U
+   * Sequence U is the concatenation of sequences S and T.
+   */
+  concat: function (stack) {
+    const top = stack.pop()
+    const bottom = stack.pop()
+    stack.push(bottom.concat(top))
+  }
+
+  /**
+   * enconcat      :  X S T  ->  U
+   * Sequence U is the concatenation of sequences S and T
+   * with X inserted between S and T (== swapd cons concat)
+   */
+
+  /**
+   * name      :  sym  ->  "sym"
+   * For operators and combinators, the string "sym" is the name of item sym,
+   * for literals sym the result string is its type.
+   */
+
+  /**
+   * intern      :  "sym"  -> sym
+   * Pushes the item whose name is "sym".
+   */
+
+  /**
+   * body      :  U  ->  [P]
+   * Quotation [P] is the body of user-defined symbol U.
+   */
 }
