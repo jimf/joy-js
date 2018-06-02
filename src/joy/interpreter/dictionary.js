@@ -1,3 +1,4 @@
+const CombinatorDefs = require('./combinator_defs')
 const MathDefs = require('./math_defs')
 const PredicateDefs = require('./predicate_defs')
 
@@ -32,6 +33,7 @@ Dictionary.stdlib = function stdlib () {
     'true': function (stack) { stack.push(true) },
     'false': function (stack) { stack.push(false) }
   })
+  load(CombinatorDefs)
   load(MathDefs)
   load(PredicateDefs)
   return dict
