@@ -2,6 +2,197 @@ const { applyToTop, applyToTop2 } = require('./util')
 
 module.exports = {
   /**
+   * id      :  ->
+   * Identity function, does nothing.
+   * Any program of the form  P id Q  is equivalent to just  P Q.
+   */
+  id: x => x,
+
+  /**
+   * dup      :   X  ->   X X
+   * Pushes an extra copy of X onto stack.
+   */
+  dup: function (stack) {
+    const top = stack.pop()
+    stack.push(top)
+    stack.push(top)
+  },
+
+  /**
+   * swap      :   X Y  ->   Y X
+   * Interchanges X and Y on top of the stack.
+   */
+  swap: function (stack) {
+    const top = stack.pop()
+    const bottom = stack.pop()
+    stack.push(top)
+    stack.push(bottom)
+  },
+
+  /**
+   * rollup      :  X Y Z  ->  Z X Y
+   * Moves X and Y up, moves Z down
+   */
+  rollup: function (stack) {
+    const top = stack.pop()
+    const middle = stack.pop()
+    const bottom = stack.pop()
+    stack.push(top)
+    stack.push(bottom)
+    stack.push(middle)
+  },
+
+  /**
+   * rolldown      :  X Y Z  ->  Y Z X
+   * Moves Y and Z down, moves X up
+   */
+  rolldown: function (stack) {
+    const top = stack.pop()
+    const middle = stack.pop()
+    const bottom = stack.pop()
+    stack.push(middle)
+    stack.push(top)
+    stack.push(bottom)
+  },
+
+  /**
+   * rotate      :  X Y Z  ->  Z Y X
+   * Interchanges X and Z
+   */
+  rotate: function (stack) {
+    const top = stack.pop()
+    const middle = stack.pop()
+    const bottom = stack.pop()
+    stack.push(top)
+    stack.push(middle)
+    stack.push(bottom)
+  },
+
+  /**
+   * popd      :  Y Z  ->  Z
+   * As if defined by:   popd  ==  [pop] dip
+   */
+  popd: function (stack) {
+    const top = stack.pop()
+    stack.pop()
+    stack.push(top)
+  },
+
+  /**
+   * dupd      :  Y Z  ->  Y Y Z
+   * As if defined by:   dupd  ==  [dup] dip
+   */
+  dupd: function (stack) {
+    const top = stack.pop()
+    const bottom = stack.pop()
+    stack.push(bottom)
+    stack.push(bottom)
+    stack.push(top)
+  },
+
+  /**
+   * swapd      :  X Y Z  ->  Y X Z
+   * As if defined by:   swapd  ==  [swap] dip
+   */
+  swapd: function (stack) {
+    const top = stack.pop()
+    const middle = stack.pop()
+    const bottom = stack.pop()
+    stack.push(middle)
+    stack.push(bottom)
+    stack.push(top)
+  },
+
+  /**
+   * rollupd      :  X Y Z W  ->  Z X Y W
+   * As if defined by:   rollupd  ==  [rollup] dip
+   */
+  rollupd: function (stack) {
+    const top = stack.pop()
+    const middleTop = stack.pop()
+    const middleBot = stack.pop()
+    const bottom = stack.pop()
+    stack.push(middleTop)
+    stack.push(bottom)
+    stack.push(middleBot)
+    stack.push(top)
+  },
+
+  /**
+   * rolldownd      :  X Y Z W  ->  Y Z X W
+   * As if defined by:   rolldownd  ==  [rolldown] dip
+   */
+  rolldownd: function (stack) {
+    const top = stack.pop()
+    const middleTop = stack.pop()
+    const middleBot = stack.pop()
+    const bottom = stack.pop()
+    stack.push(middleBot)
+    stack.push(middleTop)
+    stack.push(bottom)
+    stack.push(top)
+  },
+
+  /**
+   * rotated      :  X Y Z W  ->  Z Y X W
+   * As if defined by:   rotated  ==  [rotate] dip
+   */
+  rotated: function (stack) {
+    const top = stack.pop()
+    const middleTop = stack.pop()
+    const middleBot = stack.pop()
+    const bottom = stack.pop()
+    stack.push(middleTop)
+    stack.push(middleBot)
+    stack.push(bottom)
+    stack.push(top)
+  },
+
+  /**
+   * pop      :   X  ->
+   * Removes X from top of the stack.
+   */
+  pop: function (stack) {
+    stack.pop()
+  },
+
+  /**
+   * choice      :  B T F  ->  X
+   * If B is true, then X = T else X = F.
+   */
+  choice: function (stack) {
+    const top = stack.pop()
+    const middle = stack.pop()
+    const bottom = stack.pop()
+    stack.push(bottom === true ? middle : top)
+  },
+
+  /**
+   * or      :  X Y  ->  Z
+   * Z is the union of sets X and Y, logical disjunction for truth values.
+   * TODO
+   */
+
+  /**
+   * xor      :  X Y  ->  Z
+   * Z is the symmetric difference of sets X and Y,
+   * logical exclusive disjunction for truth values.
+   * TODO
+   */
+
+  /**
+   * and      :  X Y  ->  Z
+   * Z is the intersection of sets X and Y, logical conjunction for truth values.
+   * TODO
+   */
+
+  /**
+   * not      :  X  ->  Y
+   * Y is the complement of set X, logical negation for truth values.
+   * TODO
+   */
+
+  /**
    * +      :  M I  ->  N
    * Numeric N is the result of adding integer I to numeric M.
    * Also supports float.
