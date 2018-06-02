@@ -56,7 +56,21 @@ function Parser (lexer) {
       match('IntegerConstant') ||
       match('FloatConstant') ||
       match('CharacterConstant') ||
-      match('StringConstant')
+      match('StringConstant') ||
+      quotation()
+  }
+
+  function quotation () {
+    if (match('ReservedChar', '[')) {
+      const factors = term()
+      if (factors && match('ReservedChar', ']')) {
+        return {
+          type: 'Quotation',
+          term: factors
+        }
+      }
+    }
+    return false
   }
 
   return {
