@@ -9,6 +9,7 @@
   "scripts": {
     "lint": "standard",
     "pretest": "npm run lint",
+    "start": "budo ./static/index.js --dir=./static --live --open --host=0.0.0.0",
     "test": "nyc tape test/*.js"
   },
   "nyc": {
@@ -28,6 +29,7 @@
     "uparse": "^0.4.0"
   },
   "devDependencies": {
+    "budo": "^11.2.2",
     "nyc": "^11.8.0",
     "standard": "^11.0.1",
     "tape": "^4.9.0"
