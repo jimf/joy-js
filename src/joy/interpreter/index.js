@@ -1,7 +1,7 @@
-var Dictionary = require('./dictionary')
-var Lexer = require('../lexer')
-var Parser = require('../parser')
-var Stack = require('../stack')
+const Dictionary = require('./dictionary')
+const Lexer = require('../lexer')
+const Parser = require('../parser')
+const Stack = require('../stack')
 
 function stringify (obj) {
   if (Array.isArray(obj)) {
@@ -18,11 +18,11 @@ function stringify (obj) {
 
 function Interpreter (joy) {
   function run (input) {
-    var definitions = Dictionary.stdlib()
-    var stack = new Stack()
-    var ast = Parser(Lexer(input)).parse()
-    var instructions = ast.request.factors
-    var token
+    const definitions = Dictionary.stdlib()
+    const stack = new Stack()
+    const ast = Parser(Lexer(input)).parse()
+    const instructions = ast.request.factors
+    let token
 
     function evalInstruction (token) {
       if (token.type.endsWith('Constant')) {
@@ -35,7 +35,7 @@ function Interpreter (joy) {
       }
     }
 
-    for (var pos = 0, len = instructions.length; pos < len; pos += 1) {
+    for (let pos = 0, len = instructions.length; pos < len; pos += 1) {
       token = instructions[pos]
       evalInstruction(token, stack)
     }
