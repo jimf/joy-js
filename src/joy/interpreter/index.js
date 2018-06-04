@@ -12,10 +12,11 @@ function tokenToType (token) {
     case 'StringConstant': return new T.JoyString(token.value)
     case 'AtomicSymbol': return new T.JoySymbol(token.value)
     case 'Quotation':
-      if (token.term.factors.every(t => t.type && t.type.endsWith('Constant'))) {
-        return new T.JoyList(token.term.factors.map(tokenToType))
-      }
-      break
+      // if (token.term.factors.every(t => t.type && t.type.endsWith('Constant'))) {
+      //   return new T.JoyList(token.term.factors.map(tokenToType))
+      // }
+      // break
+      return new T.JoyList(token.term.factors.map(tokenToType))
     default: /* do nothing */
   }
   throw new Error('Unhandled type conversion for token ' + token.type)

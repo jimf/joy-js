@@ -45,6 +45,10 @@ JoyFloat.from = function (other) {
     return new JoyFloat(other.value)
   } else if (typeof other === 'number') {
     return new JoyFloat(other)
+  } else if (other.isString) {
+    return new JoyFloat(parseFloat(other.value))
+  } else if (typeof other === 'string') {
+    return new JoyFloat(parseFloat(other))
   }
   throw new Error('Cannot convert ' + other + ' to Float')
 }

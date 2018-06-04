@@ -1,3 +1,5 @@
+const { applyToTop2 } = require('./util')
+
 module.exports = [
   /**
    * i      :  [P]  ->  ...
@@ -206,11 +208,21 @@ module.exports = [
    * and combines with binary operator P to produce value V.
    */
 
-  /**
-   * map      :  A [P]  ->  B
-   * Executes P on each member of aggregate A,
-   * collects results in sametype aggregate B.
-   */
+  {
+    name: 'map',
+    signature: 'map      :  A [P]  ->  B',
+    help: `
+Executes P on each member of aggregate A,
+collects results in sametype aggregate B.
+`.trim(),
+    handlers: [
+      [['List', 'List'], applyToTop2((x, y) => {
+        console.log(x)
+        console.log(y)
+        return null
+      })]
+    ]
+  }
 
   /**
    * times      :  N [P]  ->  ...

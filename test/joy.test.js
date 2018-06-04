@@ -6,7 +6,14 @@ test('Joy examples', (t) => {
     { input: '2 3 + .', expected: '5' },
     { input: '2.34 5.67 * .', expected: String(2.34 * 5.67) },
     { input: '2 3 + dup * .', expected: '25' },
-    { input: '[1 2 3] [4 5 6 7] concat .', expected: '[1 2 3 4 5 6 7]' }
+    { input: '[1 2 3] [4 5 6 7] concat .', expected: '[1 2 3 4 5 6 7]' },
+    { input: '[ 3.14  42  [1 2 3]  0.003 ]  dup  concat', expected: '[3.14 42 [1 2 3] 0.003 3.14 42 [1 2 3] 0.003]' },
+    // { input: '[1 2 3 4]  [dup *]  map', expected: '[1 4 9 16]' },
+    // { input: '5  [1]  [*]  primrec', expected: '120' },
+    { input: '20  3  4  +  *  6  -  100  rem', expected: '34' },
+    { input: '\'A  32  +  succ  succ .', expected: 'c' },
+    { input: 'false  true  false  not  and  not  or', expected: 'false' },
+    { input: '\'A  \'E  <  2  3  +  15  3  /  =  and', expected: 'true' }
   ]
   cases.forEach(({ input, expected }) => {
     t.equal(Joy().run(input), expected)
