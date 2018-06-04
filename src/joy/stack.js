@@ -19,6 +19,10 @@ Stack.prototype.push = function push (value) {
   this._data.push(value)
 }
 
+Stack.prototype.peek = function peek (n) {
+  return n === 0 ? [] : this._data.slice(-n)
+}
+
 Stack.prototype.toString = function toSring () {
   return this._data.toString()
 }

@@ -1,4 +1,5 @@
 const CombinatorDefs = require('./combinator_defs')
+const OperandDefs = require('./operand_defs')
 const OperatorDefs = require('./operator_defs')
 const PredicateDefs = require('./predicate_defs')
 
@@ -25,15 +26,12 @@ function Dictionary () {
 Dictionary.stdlib = function stdlib () {
   const dict = Dictionary()
   function load (defs) {
-    Object.keys(defs).forEach(function (key) {
-      dict.define(key, defs[key])
+    defs.forEach((def) => {
+      dict.define(def.name, def)
     })
   }
-  load({
-    'true': function (stack) { stack.push(true) },
-    'false': function (stack) { stack.push(false) }
-  })
   load(CombinatorDefs)
+  load(OperandDefs)
   load(OperatorDefs)
   load(PredicateDefs)
   return dict

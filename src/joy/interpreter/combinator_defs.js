@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = [
   /**
    * i      :  [P]  ->  ...
    * Executes P. So, [P] i  ==  P.
@@ -266,4 +266,4 @@ module.exports = {
    * T is a tree. If T is a leaf, executes O1.
    * Else executes O2 and then [[O1] [O2] [C] treegenrec] C.
    */
-}
+]

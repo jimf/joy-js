@@ -89,7 +89,7 @@ test('Lexer recognizes character constants', function (t) {
       '\\042'
     ]).map(function (testcase) { return "'" + testcase })
   cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'CharacterConstant', rawValue: input, value: input }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'CharacterConstant', rawValue: input, value: input.slice(1) }])
   })
   t.end()
 })

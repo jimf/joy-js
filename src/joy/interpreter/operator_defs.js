@@ -1,170 +1,213 @@
 const { applyToTop, applyToTop2 } = require('./util')
+const T = require('./types')
 
-module.exports = {
-  /**
-   * id      :  ->
-   * Identity function, does nothing.
-   * Any program of the form  P id Q  is equivalent to just  P Q.
-   */
-  id: x => x,
+const map = f => x => x.map(f)
+const liftA2 = f => (x, y) => x.map(f).ap(y)
 
-  /**
-   * dup      :   X  ->   X X
-   * Pushes an extra copy of X onto stack.
-   */
-  dup: function (stack) {
-    const top = stack.pop()
-    stack.push(top)
-    stack.push(top)
+module.exports = [
+  {
+    name: 'id',
+    signature: 'id      :  ->',
+    help: 'Any program of the form  P id Q  is equivalent to just  P Q.',
+    handlers: [[[], Function.prototype]]
   },
 
-  /**
-   * swap      :   X Y  ->   Y X
-   * Interchanges X and Y on top of the stack.
-   */
-  swap: function (stack) {
-    const top = stack.pop()
-    const bottom = stack.pop()
-    stack.push(top)
-    stack.push(bottom)
+  {
+    name: 'dup',
+    signature: 'dup      :   X  ->   X X',
+    help: 'Pushes an extra copy of X onto stack.',
+    handlers: [
+      [['*'], function (stack) {
+        const top = stack.pop()
+        stack.push(top)
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * rollup      :  X Y Z  ->  Z X Y
-   * Moves X and Y up, moves Z down
-   */
-  rollup: function (stack) {
-    const top = stack.pop()
-    const middle = stack.pop()
-    const bottom = stack.pop()
-    stack.push(top)
-    stack.push(bottom)
-    stack.push(middle)
+  {
+    name: 'swap',
+    signature: 'swap      :   X Y  ->   Y X',
+    help: 'Interchanges X and Y on top of the stack.',
+    handlers: [
+      [['*', '*'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        stack.push(top)
+        stack.push(bottom)
+      }]
+    ]
   },
 
-  /**
-   * rolldown      :  X Y Z  ->  Y Z X
-   * Moves Y and Z down, moves X up
-   */
-  rolldown: function (stack) {
-    const top = stack.pop()
-    const middle = stack.pop()
-    const bottom = stack.pop()
-    stack.push(middle)
-    stack.push(top)
-    stack.push(bottom)
+  {
+    name: 'rollup',
+    signature: 'rollup      :  X Y Z  ->  Z X Y',
+    help: 'Moves X and Y up, moves Z down',
+    handlers: [
+      [['*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middle = stack.pop()
+        const bottom = stack.pop()
+        stack.push(top)
+        stack.push(bottom)
+        stack.push(middle)
+      }]
+    ]
   },
 
-  /**
-   * rotate      :  X Y Z  ->  Z Y X
-   * Interchanges X and Z
-   */
-  rotate: function (stack) {
-    const top = stack.pop()
-    const middle = stack.pop()
-    const bottom = stack.pop()
-    stack.push(top)
-    stack.push(middle)
-    stack.push(bottom)
+  {
+    name: 'rolldown',
+    signature: 'rolldown      :  X Y Z  ->  Y Z X',
+    help: 'Moves Y and Z down, moves X up',
+    handlers: [
+      [['*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middle = stack.pop()
+        const bottom = stack.pop()
+        stack.push(middle)
+        stack.push(top)
+        stack.push(bottom)
+      }]
+    ]
   },
 
-  /**
-   * popd      :  Y Z  ->  Z
-   * As if defined by:   popd  ==  [pop] dip
-   */
-  popd: function (stack) {
-    const top = stack.pop()
-    stack.pop()
-    stack.push(top)
+  {
+    name: 'rotate',
+    signature: 'rotate      :  X Y Z  ->  Z Y X',
+    help: 'Interchanges X and Z',
+    handlers: [
+      [['*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middle = stack.pop()
+        const bottom = stack.pop()
+        stack.push(top)
+        stack.push(middle)
+        stack.push(bottom)
+      }]
+    ]
   },
 
-  /**
-   * dupd      :  Y Z  ->  Y Y Z
-   * As if defined by:   dupd  ==  [dup] dip
-   */
-  dupd: function (stack) {
-    const top = stack.pop()
-    const bottom = stack.pop()
-    stack.push(bottom)
-    stack.push(bottom)
-    stack.push(top)
+  {
+    name: 'popd',
+    signature: 'popd      :  Y Z  ->  Z',
+    help: 'As if defined by:   popd  ==  [pop] dip',
+    handlers: [
+      [['*', '*'], function (stack) {
+        const top = stack.pop()
+        stack.pop()
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * swapd      :  X Y Z  ->  Y X Z
-   * As if defined by:   swapd  ==  [swap] dip
-   */
-  swapd: function (stack) {
-    const top = stack.pop()
-    const middle = stack.pop()
-    const bottom = stack.pop()
-    stack.push(middle)
-    stack.push(bottom)
-    stack.push(top)
+  {
+    name: 'dupd',
+    signature: 'dupd      :  Y Z  ->  Y Y Z',
+    help: 'As if defined by:   dupd  ==  [dup] dip',
+    handlers: [
+      [['*', '*'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        stack.push(bottom)
+        stack.push(bottom)
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * rollupd      :  X Y Z W  ->  Z X Y W
-   * As if defined by:   rollupd  ==  [rollup] dip
-   */
-  rollupd: function (stack) {
-    const top = stack.pop()
-    const middleTop = stack.pop()
-    const middleBot = stack.pop()
-    const bottom = stack.pop()
-    stack.push(middleTop)
-    stack.push(bottom)
-    stack.push(middleBot)
-    stack.push(top)
+  {
+    name: 'swapd',
+    signature: 'swapd      :  X Y Z  ->  Y X Z',
+    help: 'As if defined by:   swapd  ==  [swap] dip',
+    handlers: [
+      [['*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middle = stack.pop()
+        const bottom = stack.pop()
+        stack.push(middle)
+        stack.push(bottom)
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * rolldownd      :  X Y Z W  ->  Y Z X W
-   * As if defined by:   rolldownd  ==  [rolldown] dip
-   */
-  rolldownd: function (stack) {
-    const top = stack.pop()
-    const middleTop = stack.pop()
-    const middleBot = stack.pop()
-    const bottom = stack.pop()
-    stack.push(middleBot)
-    stack.push(middleTop)
-    stack.push(bottom)
-    stack.push(top)
+  {
+    name: 'rollupd',
+    signature: 'rollupd      :  X Y Z W  ->  Z X Y W',
+    help: 'As if defined by:   rollupd  ==  [rollup] dip',
+    handlers: [
+      [['*', '*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middleTop = stack.pop()
+        const middleBot = stack.pop()
+        const bottom = stack.pop()
+        stack.push(middleTop)
+        stack.push(bottom)
+        stack.push(middleBot)
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * rotated      :  X Y Z W  ->  Z Y X W
-   * As if defined by:   rotated  ==  [rotate] dip
-   */
-  rotated: function (stack) {
-    const top = stack.pop()
-    const middleTop = stack.pop()
-    const middleBot = stack.pop()
-    const bottom = stack.pop()
-    stack.push(middleTop)
-    stack.push(middleBot)
-    stack.push(bottom)
-    stack.push(top)
+  {
+    name: 'rolldownd',
+    signature: 'rolldownd      :  X Y Z W  ->  Y Z X W',
+    help: 'As if defined by:   rolldownd  ==  [rolldown] dip',
+    handlers: [
+      [['*', '*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middleTop = stack.pop()
+        const middleBot = stack.pop()
+        const bottom = stack.pop()
+        stack.push(middleBot)
+        stack.push(middleTop)
+        stack.push(bottom)
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * pop      :   X  ->
-   * Removes X from top of the stack.
-   */
-  pop: function (stack) {
-    stack.pop()
+  {
+    name: 'rotated',
+    signature: 'rotated      :  X Y Z W  ->  Z Y X W',
+    help: 'As if defined by:   rotated  ==  [rotate] dip',
+    handlers: [
+      [['*', '*', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middleTop = stack.pop()
+        const middleBot = stack.pop()
+        const bottom = stack.pop()
+        stack.push(middleTop)
+        stack.push(middleBot)
+        stack.push(bottom)
+        stack.push(top)
+      }]
+    ]
   },
 
-  /**
-   * choice      :  B T F  ->  X
-   * If B is true, then X = T else X = F.
-   */
-  choice: function (stack) {
-    const top = stack.pop()
-    const middle = stack.pop()
-    const bottom = stack.pop()
-    stack.push(bottom === true ? middle : top)
+  {
+    name: 'pop',
+    signature: 'pop      :   X  ->',
+    help: 'Removes X from top of the stack.',
+    handlers: [
+      [['*'], function (stack) {
+        stack.pop()
+      }]
+    ]
+  },
+
+  {
+    name: 'choice',
+    signature: 'choice      :  B T F  ->  X',
+    help: 'If B is true, then X = T else X = F.',
+    handlers: [
+      [['Bool', '*', '*'], function (stack) {
+        const top = stack.pop()
+        const middle = stack.pop()
+        const bottom = stack.pop()
+        stack.push(bottom === true ? middle : top)
+      }]
+    ]
   },
 
   /**
@@ -192,131 +235,208 @@ module.exports = {
    * TODO
    */
 
-  /**
-   * +      :  M I  ->  N
-   * Numeric N is the result of adding integer I to numeric M.
-   * Also supports float.
-   */
-  '+': applyToTop2((x, y) => x + y),
-
-  /**
-   * -      :  M I  ->  N
-   * Numeric N is the result of subtracting integer I from numeric M.
-   * Also supports float.
-   */
-  '-': applyToTop2((x, y) => x - y),
-
-  /**
-   * *      :  I J  ->  K
-   * Integer K is the product of integers I and J.  Also supports float.
-   */
-  '*': applyToTop2((x, y) => x * y),
-
-  /**
-   * /      :  I J  ->  K
-   * Integer K is the (rounded) ratio of integers I and J.  Also supports float.
-   */
-  '/': applyToTop2((x, y) => Math.floor(x / y)),
-
-  /**
-   * rem      :  I J  ->  K
-   * Integer K is the remainder of dividing I by J.  Also supports float.
-   */
-  rem: applyToTop2((x, y) => x % y),
-
-  /**
-   * div      :  I J  ->  K L
-   * Integers K and L are the quotient and remainder of dividing I by J.
-   */
-  div: function (stack) {
-    const top = stack.pop()
-    const bottom = stack.pop()
-    stack.push(Math.floor(bottom / top))
-    stack.push(Math.floor(bottom % top))
+  {
+    name: '+',
+    signature: '+      :  M I  ->  N',
+    help: `
+Numeric N is the result of adding integer I to numeric M.
+Also supports float.
+`.trim(),
+    handlers: [
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => {
+        if (x.isCharacter || y.isCharacter) {
+          return T.JoyChar.from(x.toNumber() + y.toNumber())
+        }
+        return new T.JoyInt(x.value + y.value)
+      })],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => x + y))]
+    ]
   },
 
-  /**
-   * sign      :  N1  ->  N2
-   * Integer N2 is the sign (-1 or 0 or +1) of integer N1,
-   * or float N2 is the sign (-1.0 or 0.0 or 1.0) of float N1.
-   */
-  sign: function (stack) {
-    const top = stack.pop()
-    if (top === 0) {
-      stack.push(0)
-    } else if (top > 0) {
-      stack.push(1)
-    } else {
-      stack.push(-1)
-    }
+  {
+    name: '-',
+    signature: '-      :  M I  ->  N',
+    help: `
+Numeric N is the result of subtracting integer I from numeric M.
+Also supports float.
+`.trim(),
+    handlers: [
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => {
+        if (x.isCharacter || y.isCharacter) {
+          return T.JoyChar.from(x.toNumber() - y.toNumber())
+        }
+        return new T.JoyInt(x.value - y.value)
+      })],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => x - y))]
+    ]
   },
 
-  /**
-   * neg      :  I  ->  J
-   * Integer J is the negative of integer I.  Also supports float.
-   */
-  neg: applyToTop(x => -x),
+  {
+    name: '*',
+    signature: '*      :  I J  ->  K',
+    help: 'Integer K is the product of integers I and J.  Also supports float.',
+    handlers: [
+      [['Integer', 'Integer'], applyToTop2(liftA2(x => y => x * y))],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => x * y))]
+    ]
+  },
 
-  /**
-   * abs      :  N1  ->  N2
-   * Integer N2 is the absolute value (0,1,2..) of integer N1,
-   * or float N2 is the absolute value (0.0 ..) of float N1
-   */
-  abs: applyToTop(Math.abs),
+  {
+    name: '/',
+    signature: '/      :  I J  ->  K',
+    help: 'Integer K is the (rounded) ratio of integers I and J.  Also supports float.',
+    handlers: [
+      [['Integer', 'Integer'], applyToTop2(liftA2(x => y => x / y))],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => x / y))]
+    ]
+  },
 
-  /**
-   * acos      :  F  ->  G
-   * G is the arc cosine of F.
-   */
-  acos: applyToTop(Math.acos),
+  {
+    name: 'rem',
+    signature: 'rem      :  I J  ->  K',
+    help: 'Integer K is the remainder of dividing I by J.  Also supports float.',
+    handlers: [
+      [['Integer', 'Integer'], applyToTop2(liftA2(x => y => x % y))],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => x % y))] // Should this return Int?
+    ]
+  },
 
-  /**
-   * asin      :  F  ->  G
-   * G is the arc sine of F.
-   */
-  asin: applyToTop(Math.asin),
+  {
+    name: 'div',
+    signature: 'div      :  I J  ->  K L',
+    help: 'Integers K and L are the quotient and remainder of dividing I by J.',
+    handlers: [
+      [['Integer', 'Integer'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        stack.push(top.map(() => Math.floor(bottom / top)))
+        stack.push(top.map(() => Math.floor(bottom % top)))
+      }]
+    ]
+  },
 
-  /**
-   * atan      :  F  ->  G
-   * G is the arc tangent of F.
-   */
-  atan: applyToTop(Math.atan),
+  {
+    name: 'sign',
+    signature: 'sign      :  N1  ->  N2',
+    help: `
+Integer N2 is the sign (-1 or 0 or +1) of integer N1,
+or float N2 is the sign (-1.0 or 0.0 or 1.0) of float N1.
+`.trim(),
+    handlers: [
+      [['Integer'], applyToTop(map(x => {
+        if (x === 0) { return 0 }
+        return x < 0 ? -1 : 1
+      }))],
+      [['Float'], applyToTop(map(x => {
+        if (x === 0) { return 0 }
+        return x < 0 ? -1 : 1
+      }))]
+    ]
+  },
 
-  /**
-   * atan2      :  F G  ->  H
-   * H is the arc tangent of F / G.
-   */
-  atan2: applyToTop2((x, y) => Math.atan(x / y)),
+  {
+    name: 'neg',
+    signature: 'neg      :  I  ->  J',
+    help: 'Integer J is the negative of integer I.  Also supports float.',
+    handlers: [
+      [['Integer'], applyToTop(map(x => -x))],
+      [['Float'], applyToTop(map(x => -x))]
+    ]
+  },
 
-  /**
-   * ceil      :  F  ->  G
-   * G is the float ceiling of F.
-   */
-  ceil: applyToTop(Math.ceil),
+  {
+    name: 'abs',
+    signature: 'abs      :  N1  ->  N2',
+    help: `
+Integer N2 is the absolute value (0,1,2..) of integer N1,
+or float N2 is the absolute value (0.0 ..) of float N1
+`.trim(),
+    handlers: [
+      [['Integer'], applyToTop(map(Math.abs))],
+      [['Float'], applyToTop(map(Math.abs))]
+    ]
+  },
 
-  /**
-   * cos      :  F  ->  G
-   * G is the cosine of F.
-   */
-  cos: applyToTop(Math.cos),
+  {
+    name: 'acos',
+    signature: 'acos      :  F  ->  G',
+    help: 'G is the arc cosine of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.acos))]
+    ]
+  },
 
-  /**
-   * cosh      :  F  ->  G
-   * G is the hyperbolic cosine of F.
-   */
-  cosh: applyToTop(Math.cosh),
+  {
+    name: 'asin',
+    signature: 'asin      :  F  ->  G',
+    help: 'G is the arc sine of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.asin))]
+    ]
+  },
 
-  /**
-   * exp      :  F  ->  G
-   * G is e (2.718281828...) raised to the Fth power.
-   */
-  exp: applyToTop(Math.exp),
+  {
+    name: 'atan',
+    signature: 'atan      :  F  ->  G',
+    help: 'G is the arc tangent of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.atan))]
+    ]
+  },
 
-  /**
-   * floor      :  F  ->  G
-   * G is the floor of F.
-   */
-  floor: applyToTop(Math.floor),
+  {
+    name: 'atan2',
+    signature: 'atan2      :  F G  ->  H',
+    help: 'H is the arc tangent of F / G.',
+    handlers: [
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => Math.atan(x / y)))]
+    ]
+  },
+
+  {
+    name: 'ceil',
+    signature: 'ceil      :  F  ->  G',
+    help: 'G is the float ceiling of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.ceil))]
+    ]
+  },
+
+  {
+    name: 'cos',
+    signature: 'cos      :  F  ->  G',
+    help: 'G is the cosine of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.cos))]
+    ]
+  },
+
+  {
+    name: 'cosh',
+    signature: 'cosh      :  F  ->  G',
+    help: 'G is the hyperbolic cosine of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.cosh))]
+    ]
+  },
+
+  {
+    name: 'exp',
+    signature: 'exp      :  F  ->  G',
+    help: 'G is e (2.718281828...) raised to the Fth power.',
+    handlers: [
+      [['Integer'], applyToTop(x => T.JoyFloat.from(x).map(Math.exp))]
+    ]
+  },
+
+  {
+    name: 'floor',
+    signature: 'floor      :  F  ->  G',
+    help: 'G is the floor of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.floor))]
+    ]
+  },
 
   /**
    * frexp      :  F  ->  G I
@@ -325,89 +445,140 @@ module.exports = {
    * TODO (not easy in JS)
    */
 
-  /**
-   * ldexp      :  F I  -> G
-   * G is F times 2 to the Ith power.
-   */
-  ldexp: applyToTop2((x, y) => x * Math.pow(2, y)),
-
-  /**
-   * log      :  F  ->  G
-   * G is the natural logarithm of F.
-   */
-  log: applyToTop(Math.log),
-
-  /**
-   * log10      :  F  ->  G
-   * G is the common logarithm of F.
-   */
-  log10: applyToTop(Math.log10),
-
-  /**
-   * modf      :  F  ->  G H
-   * G is the fractional part and H is the integer part
-   * (but expressed as a float) of F.
-   */
-  modf: function (stack) {
-    const top = stack.pop()
-    const intPart = Math.floor(top)
-    stack.push(top % intPart)
-    stack.push(intPart)
+  {
+    name: 'ldexp',
+    signature: 'ldexp      :  F I  -> G',
+    help: 'G is F times 2 to the Ith power.',
+    handlers: [
+      [['Float', 'Integer'], applyToTop2((F, I) =>
+        new T.JoyFloat(x => y => x * y)
+          .ap(F)
+          .ap(T.JoyFloat.from(I.map(x => Math.pow(2, x)))))]
+    ]
   },
 
-  /**
-   * pow      :  F G  ->  H
-   * H is F raised to the Gth power.
-   */
-  pow: applyToTop2(Math.pow),
+  {
+    name: 'log',
+    signature: 'log      :  F  ->  G',
+    help: 'G is the natural logarithm of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.log))]
+    ]
+  },
 
-  /**
-   * sin      :  F  ->  G
-   * G is the sine of F.
-   */
-  sin: applyToTop(Math.sin),
+  {
+    name: 'log10',
+    signature: 'log10      :  F  ->  G',
+    help: 'G is the common logarithm of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.log10))]
+    ]
+  },
 
-  /**
-   * sinh      :  F  ->  G
-   * G is the hyperbolic sine of F.
-   */
-  sinh: applyToTop(Math.sinh),
+  {
+    name: 'modf',
+    signature: 'modf      :  F  ->  G H',
+    help: `
+G is the fractional part and H is the integer part
+(but expressed as a float) of F.
+`.trim(),
+    handlers: [
+      [['Float'], function (stack) {
+        const top = stack.pop()
+        const intPart = top.map(Math.floor)
+        stack.push(new T.JoyFloat(x => y => x % y).ap(top).ap(intPart))
+        stack.push(intPart)
+      }]
+    ]
+  },
 
-  /**
-   * sqrt      :  F  ->  G
-   * G is the square root of F.
-   */
-  sqrt: applyToTop(Math.sqrt),
+  {
+    name: 'pow',
+    signature: 'pow      :  F G  ->  H',
+    help: 'H is F raised to the Gth power.',
+    handlers: [
+      [['Float', 'Integer'], applyToTop2((F, G) =>
+        new T.JoyFloat(x => y => Math.pow(x, y))
+          .ap(F)
+          .ap(T.JoyFloat.from(G)))]
+    ]
+  },
 
-  /**
-   * tan      :  F  ->  G
-   * G is the tangent of F.
-   */
-  tan: applyToTop(Math.tan),
+  {
+    name: 'sin',
+    signature: 'sin      :  F  ->  G',
+    help: 'G is the sine of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.sin))]
+    ]
+  },
 
-  /**
-   * tanh      :  F  ->  G
-   * G is the hyperbolic tangent of F.
-   */
-  tanh: applyToTop(Math.tanh),
+  {
+    name: 'sinh',
+    signature: 'sinh      :  F  ->  G',
+    help: 'G is the hyperbolic sine of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.sinh))]
+    ]
+  },
 
-  /**
-   * trunc      :  F  ->  I
-   * I is an integer equal to the float F truncated toward zero.
-   */
-  trunc: applyToTop(Math.trunc),
+  {
+    name: 'sqrt',
+    signature: 'sqrt      :  F  ->  G',
+    help: 'G is the square root of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.sqrt))]
+    ]
+  },
 
-  /**
-   * max      :  N1 N2  ->  N
-   * N is the maximum of numeric values N1 and N2.  Also supports float.
-   */
-  max: applyToTop2(Math.max),
+  {
+    name: 'tan',
+    signature: 'tan      :  F  ->  G',
+    help: 'G is the tangent of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.tan))]
+    ]
+  },
 
-  /**
-   * min      :  N1 N2  ->  N
-   * N is the minimum of numeric values N1 and N2.  Also supports float.
-   */
-  min: applyToTop2(Math.min),
+  {
+    name: 'tanh',
+    signature: 'tanh      :  F  ->  G',
+    help: 'G is the hyperbolic tangent of F.',
+    handlers: [
+      [['Float'], applyToTop(map(Math.tanh))]
+    ]
+  },
+
+  {
+    name: 'trunc',
+    signature: 'trunc      :  F  ->  I',
+    help: 'I is an integer equal to the float F truncated toward zero.',
+    handlers: [
+      [['Float'], applyToTop(T.JoyInt.from)]
+    ]
+  },
+
+  {
+    name: 'max',
+    signature: 'max      :  N1 N2  ->  N',
+    help: 'N is the maximum of numeric values N1 and N2.  Also supports float.',
+    handlers: [
+      [['Character', 'Character'], applyToTop2(liftA2(x => y => x >= y ? x : y))],
+      [['Integer', 'Integer'], applyToTop2(liftA2(x => y => Math.max(x, y)))],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => Math.max(x, y)))]
+    ]
+  },
+
+  {
+    name: 'min',
+    signature: 'min      :  N1 N2  ->  N',
+    help: 'N is the minimum of numeric values N1 and N2.  Also supports float.',
+    handlers: [
+      [['Character', 'Character'], applyToTop2((N1, N2) => new T.JoyChar(x => y => x <= y ? x : y).ap(N1).ap(N2))],
+      [['Integer', 'Integer'], applyToTop2(liftA2(x => y => Math.min(x, y)))],
+      [['Float', 'Float'], applyToTop2(liftA2(x => y => Math.min(x, y)))]
+    ]
+  },
 
   /**
    * fclose      :  S  ->
@@ -575,14 +746,13 @@ module.exports = {
    * Aggregate B is the result of retaining just the first N elements of A.
    */
 
-  /**
-   * concat      :  S T  ->  U
-   * Sequence U is the concatenation of sequences S and T.
-   */
-  concat: function (stack) {
-    const top = stack.pop()
-    const bottom = stack.pop()
-    stack.push(bottom.concat(top))
+  {
+    name: 'concat',
+    signature: 'concat      :  S T  ->  U',
+    help: 'Sequence U is the concatenation of sequences S and T.',
+    handlers: [
+      [['List', 'List'], applyToTop2(liftA2(x => y => x.concat(y)))]
+    ]
   }
 
   /**
@@ -606,4 +776,4 @@ module.exports = {
    * body      :  U  ->  [P]
    * Quotation [P] is the body of user-defined symbol U.
    */
-}
+]

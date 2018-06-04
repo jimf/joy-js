@@ -63,7 +63,7 @@ var NumberFsm = Fsm({
 var CharacterFsm = Fsm({
   initial: 'Initial',
   stop: 'NoNextState',
-  accepting: ['Character'],
+  accepting: ['Character', 'EscapedCharacter', 'CharacterEscapedAscii'],
   default: 'NoNextState',
   states: {
     Initial: [
@@ -74,14 +74,14 @@ var CharacterFsm = Fsm({
       ['\\', 'BeginEscapedCharacter']
     ],
     BeginEscapedCharacter: [
-      [/[ntbrf'"]/, 'Character'],
+      [/[ntbrf'"]/, 'EscapedCharacter'],
       [/\d/, 'BeginEscapedAscii0']
     ],
     BeginEscapedAscii0: [
       [/\d/, 'BeginEscapedAscii1']
     ],
     BeginEscapedAscii1: [
-      [/\d/, 'Character']
+      [/\d/, 'CharacterEscapedAscii']
     ]
   }
 })
@@ -179,7 +179,8 @@ function Lexer (input) {
     var result = CharacterFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
-    return new Token('CharacterConstant', result.value)
+    // FIXME: value isn't correct for escaped strings or ascii codes
+    return new Token('CharacterConstant', result.value, result.value.slice(1))
   }
 
   function recognizeString () {
