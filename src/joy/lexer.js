@@ -1,5 +1,15 @@
 var Fsm = require('./fsm')
 
+const escapedCharToValue = {
+  '\'\\n': '\n',
+  '\'\\t': '\t',
+  '\'\\b': '\b',
+  '\'\\r': '\r',
+  '\'\\f': '\f',
+  "'\\'": "'",
+  '\'\\"': '"'
+}
+
 function Token (type, rawValue, value) {
   this.type = type
   this.rawValue = rawValue
@@ -179,8 +189,16 @@ function Lexer (input) {
     var result = CharacterFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
-    // FIXME: value isn't correct for escaped strings or ascii codes
-    return new Token('CharacterConstant', result.value, result.value.slice(1))
+    let value
+    if (result.state === 'Character') {
+      value = result.value.charAt(1)
+    } else if (result.state === 'EscapedCharacter') {
+      value = escapedCharToValue[result.value]
+    } else {
+      const octal = parseInt(result.value.slice(2), 8)
+      value = String.fromCharCode(octal)
+    }
+    return new Token('CharacterConstant', result.value, value)
   }
 
   function recognizeString () {

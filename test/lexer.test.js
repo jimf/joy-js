@@ -78,19 +78,18 @@ test('Lexer recognizes character constants', function (t) {
     .concat(lower)
     .concat(upper)
     .concat(special)
-    .concat([
-      '\\n',
-      '\\t',
-      '\\b',
-      '\\r',
-      '\\f',
-      '\\\'',
-      '\\"',
-      '\\042'
-    ]).map(function (testcase) { return "'" + testcase })
+    .map(function (testcase) { return "'" + testcase })
   cases.forEach(function (input) {
     t.deepEqual(Lexer(input).tokenize(), [{ type: 'CharacterConstant', rawValue: input, value: input.slice(1) }])
   })
+  t.deepEqual(Lexer('\'\\n').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\n', value: '\n' }])
+  t.deepEqual(Lexer('\'\\t').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\t', value: '\t' }])
+  t.deepEqual(Lexer('\'\\b').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\b', value: '\b' }])
+  t.deepEqual(Lexer('\'\\r').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\r', value: '\r' }])
+  t.deepEqual(Lexer('\'\\f').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\f', value: '\f' }])
+  t.deepEqual(Lexer('\'\\\'').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\\'', value: "'" }])
+  t.deepEqual(Lexer('\'\\"').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\"', value: '"' }])
+  t.deepEqual(Lexer('\'\\042').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\042', value: String.fromCharCode(34) }])
   t.end()
 })
 
