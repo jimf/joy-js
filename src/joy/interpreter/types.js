@@ -17,6 +17,10 @@ JoyBase.prototype.toString = function () {
   return this.value.toString()
 }
 
+// function Aggregate () {
+
+// }
+
 function JoyInt (value) {
   JoyBase.call(this, value)
   this.isInteger = true
@@ -85,6 +89,10 @@ JoyChar.from = function (other) {
 JoyChar.prototype.toNumber = function () {
   return this.value.charCodeAt(0)
 }
+JoyChar.prototype.toString = function () {
+  // TODO: Add handling for escape sequences
+  return `'${this.value.toString()}`
+}
 
 function JoyString (value) {
   JoyBase.call(this, value)
@@ -98,6 +106,9 @@ JoyString.from = function (other) {
     return new JoyString(other.value)
   }
   throw new Error('Cannot convert ' + other + ' to String')
+}
+JoyString.prototype.first = function () {
+  return new JoyChar(this.value.charAt(0))
 }
 
 function JoyBool (value) {

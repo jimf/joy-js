@@ -23,14 +23,14 @@ function Dictionary () {
   return { define: define, get: get }
 }
 
-Dictionary.stdlib = function stdlib () {
+Dictionary.stdlib = function stdlib (execute) {
   const dict = Dictionary()
   function load (defs) {
     defs.forEach((def) => {
       dict.define(def.name, def)
     })
   }
-  load(CombinatorDefs)
+  load(CombinatorDefs(execute))
   load(OperandDefs)
   load(OperatorDefs)
   load(PredicateDefs)

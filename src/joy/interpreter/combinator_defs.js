@@ -1,6 +1,17 @@
-const { applyToTop2 } = require('./util')
+// const { applyToTop2 } = require('./util')
+const T = require('./types')
 
-module.exports = [
+function trampoline (fn) {
+  return function () {
+    let result = fn.apply(this, arguments)
+    while (result instanceof Function) {
+      result = result()
+    }
+    return result
+  }
+}
+
+module.exports = execute => [
   /**
    * i      :  [P]  ->  ...
    * Executes P. So, [P] i  ==  P.
@@ -216,13 +227,23 @@ Executes P on each member of aggregate A,
 collects results in sametype aggregate B.
 `.trim(),
     handlers: [
-      [['List', 'List'], applyToTop2((x, y) => {
-        console.log(x)
-        console.log(y)
-        return null
-      })]
+      [['List', 'List'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        const result = []
+        bottom.value.forEach((item) => {
+          stack.push(item)
+          top.value.forEach((p) => {
+            stack.push(p)
+            execute()
+          })
+          result.push(stack.pop())
+        })
+        stack.push(new T.JoyList(result))
+      }]
+      // TODO: Set, String
     ]
-  }
+  },
 
   /**
    * times      :  N [P]  ->  ...
@@ -236,12 +257,53 @@ collects results in sametype aggregate B.
    * and after execution of P the top of stack becomes the first element of L2.
    */
 
-  /**
-   * primrec      :  X [I] [C]  ->  R
-   * Executes I to obtain an initial value R0.
-   * For integer X uses increasing positive integers to X, combines by C for new R.
-   * For aggregate X uses successive members and combines by C for new R.
-   */
+  {
+    name: 'primrec',
+    signature: 'primrec      :  X [I] [C]  ->  R',
+    help: `
+Executes I to obtain an initial value R0.
+For integer X uses increasing positive integers to X, combines by C for new R.
+For aggregate X uses successive members and combines by C for new R.
+`.trim(),
+    handlers: [
+      [['Integer', 'List', 'List'], function (stack) {
+        const C = stack.pop()
+        const I = stack.pop()
+
+        // function primrec (n) {
+        //   if (n === 0) {
+        //     return I.value[0]
+        //   }
+        //   stack.push(new T.JoyInt(n))
+        //   stack.push(primrec(n - 1))
+        //   C.value.forEach((p) => {
+        //     stack.push(p)
+        //     execute()
+        //   })
+        //   return stack.pop()
+        // }
+
+        const primrec = trampoline(function _primrec (n) {
+          if (n === 0) {
+            return I.value[0]
+          }
+          return function () {
+            stack.push(new T.JoyInt(n))
+            const res = _primrec(n - 1)
+            stack.push(res instanceof Function ? res() : res)
+            C.value.forEach((p) => {
+              stack.push(p)
+              execute()
+            })
+            return stack.pop()
+          }
+        })
+
+        stack.push(primrec(stack.pop().value))
+      }]
+      // TODO: other aggregates
+    ]
+  }
 
   /**
    * filter      :  A [B]  ->  A1

@@ -33,33 +33,41 @@ function arityToMessage (arity) {
 }
 
 function Interpreter (stack) {
+  const definitions = Dictionary.stdlib(execute)
+
+  function evalInstruction (val) {
+    if (val.isSymbol) {
+      const def = definitions.get(val.value)
+      const arity = def.handlers[0][0].length
+      if (stack.length < arity) {
+        throw new Error(`run time error: ${arityToMessage(arity)} needed for ${def.name}`)
+      }
+      const params = stack.peek(arity)
+      const handler = def.handlers.find(handlerDef =>
+        params.every((p, i) => {
+          const paramType = handlerDef[0][i]
+          return paramType === '*' || p[`is${paramType}`]
+        }))
+      if (!handler) {
+        throw new Error(`run time error: suitable parameters needed for ${def.name}`)
+      }
+      handler[1](stack)
+    } else {
+      stack.push(val)
+    }
+  }
+
+  function execute () {
+    if (stack.length && stack.peek(1)[0].isSymbol) {
+      const p = stack.pop()
+      evalInstruction(p, stack)
+    }
+  }
+
   function run (input) {
-    const definitions = Dictionary.stdlib()
     const ast = Parser(Lexer(input)).parse()
     const instructions = ast.request.factors
     let token
-
-    function evalInstruction (val) {
-      if (val.isSymbol) {
-        const def = definitions.get(val.value)
-        const arity = def.handlers[0][0].length
-        if (stack.length < arity) {
-          throw new Error(`run time error: ${arityToMessage(arity)} needed for ${def.name}`)
-        }
-        const params = stack.peek(arity)
-        const handler = def.handlers.find(handlerDef =>
-          params.every((p, i) => {
-            const paramType = handlerDef[0][i]
-            return paramType === '*' || p[`is${paramType}`]
-          }))
-        if (!handler) {
-          throw new Error(`run time error: suitable parameters needed for ${def.name}`)
-        }
-        handler[1](stack)
-      } else {
-        stack.push(val)
-      }
-    }
 
     for (let pos = 0, len = instructions.length; pos < len; pos += 1) {
       token = instructions[pos]
@@ -67,7 +75,7 @@ function Interpreter (stack) {
     }
   }
 
-  return { run: run }
+  return { execute: execute, run: run }
 }
 
 module.exports = Interpreter

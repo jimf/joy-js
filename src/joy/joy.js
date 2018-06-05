@@ -3,7 +3,7 @@ var Stack = require('./stack')
 
 function Joy () {
   const flags = {
-    autoput: 1,
+    autoput: 2,
     echo: 0
   }
   const stack = new Stack()
@@ -35,7 +35,9 @@ function Joy () {
           output.push(stack.peek(1).toString())
           break
         case 2:
-          output.concat(stack.peek(stack.length).map(x => x.toString()))
+          stack.peek(stack.length).forEach((item) => {
+            output.push(item.toString())
+          })
           break
       }
 

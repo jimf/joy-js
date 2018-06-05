@@ -797,8 +797,8 @@ but leading "0" means base 8 and leading "0x" means base 16.
     help: 'Aggregate B is A with a new member X (first member for sequences).',
     handlers: [
       [['*', 'List'], applyToTop2((X, A) => A.map(xs => [X].concat(xs)))],
-      [['Character', 'String'], applyToTop2((X, A) => A.map(cs => X.value.concat(cs)))]
-      // TODO: Set
+      [['Character', 'String'], applyToTop2((X, A) => A.map(cs => X.value.concat(cs)))],
+      [['Integer', 'Set'], applyToTop2((X, A) => A.union(new T.JoySet([X])))]
     ]
   },
 
@@ -811,6 +811,14 @@ but leading "0" means base 8 and leading "0x" means base 16.
    * first      :  A  ->  F
    * F is the first member of the non-empty aggregate A.
    */
+  {
+    name: 'first',
+    signature: 'first      :  A  ->  F',
+    help: 'F is the first member of the non-empty aggregate A.',
+    handlers: [
+      [['NonEmptyAggregate'], applyToTop(x => x.first())]
+    ]
+  },
 
   /**
    * rest      :  A  ->  R

@@ -205,7 +205,8 @@ function Lexer (input) {
     var result = StringFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
-    return new Token('StringConstant', result.value)
+    // TODO: add handling for escapes in value
+    return new Token('StringConstant', result.value, result.value.slice(1, -1))
   }
 
   function recognizeSymbol () {

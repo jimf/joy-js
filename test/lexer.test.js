@@ -109,7 +109,7 @@ test('Lexer recognizes string constants', function (t) {
     '" "'
   ]
   cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'StringConstant', rawValue: input, value: input }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'StringConstant', rawValue: input, value: input.slice(1, -1) }])
   })
   t.end()
 })
