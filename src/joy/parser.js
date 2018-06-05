@@ -2,9 +2,10 @@ function Parser (lexer) {
   let pos = 0
   let tokens = lexer.tokenize()
 
-  function expect (bool) {
+  function expect (bool, msg) {
     if (!bool) {
-      throw new Error('Syntax Error: Unexpected token "' + tokens[pos].value + '"')
+      msg = msg || 'Syntax Error: Unexpected token "' + tokens[pos].value + '"'
+      throw new Error(msg)
     }
   }
 
@@ -33,7 +34,7 @@ function Parser (lexer) {
         continue
       }
       next = term()
-      if (next && (match('ReservedWord', 'END') || match('ReservedChar', '.'))) {
+      if (next && end()) {
         node.requests.push(next)
         continue
       }
@@ -44,14 +45,64 @@ function Parser (lexer) {
   }
 
   function compoundDefinition () {
+    let result = hideIn()
+    if (result) { return result }
+    const mod = match('ReservedWord', 'MODULE') && match('AtomicSymbol')
+    const priv = match('ReservedWord', 'PRIVATE') && definitionSequence()
+    const pub = (match('ReservedWord', 'PUBLIC') || match('ReservedWord', 'DEFINE') || match('ReservedWord', 'LIBRA')) && definitionSequence()
+    if ((mod || priv || pub) && end()) {
+      return {
+        type: 'CompoundDefinition',
+        module: mod,
+        private: priv,
+        public: pub
+      }
+    }
     return false
   }
 
-  // function simpleDefinition () {}
+  function hideIn () {
+    if (match('ReservedWord', 'HIDE')) {
+      const priv = definitionSequence()
+      expect(priv && match('ReservedWord', 'IN'), 'IN expected in HIDE-definition')
+      const pub = definitionSequence()
+      expect(pub && match('ReservedWord', 'END'), 'END expected in HIDE-definition')
+      return {
+        type: 'CompoundDefinition',
+        module: false,
+        private: priv,
+        public: pub
+      }
+    }
+    return false
+  }
 
-  // function definitionSequence () {}
+  function definitionSequence () {
+    const definitions = []
+    let def = simpleDefinition()
+    while (def) {
+      definitions.push(def)
+      def = match('ReservedChar', ';') && simpleDefinition()
+    }
+    if (definitions.length) {
+      return {
+        type: 'DefinitionSequence',
+        definitions: definitions
+      }
+    }
+    return false
+  }
 
-  // function literal () {}
+  function simpleDefinition () {
+    const sym = match('AtomicSymbol')
+    if (!(sym && match('ReservedWord', '=='))) { return false }
+    const trm = term()
+    return trm && {
+      type: 'SimpleDefinition',
+      symbol: sym,
+      term: trm
+    }
+  }
 
   function term () {
     const node = {
@@ -105,6 +156,10 @@ function Parser (lexer) {
       }
     }
     return false
+  }
+
+  function end () {
+    return match('ReservedWord', 'END') || match('ReservedChar', '.')
   }
 
   return {

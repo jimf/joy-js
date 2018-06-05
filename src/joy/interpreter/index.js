@@ -66,18 +66,13 @@ function Interpreter (stack) {
 
   function run (input) {
     const ast = Parser(Lexer(input)).parse()
-    // let token
-    // const instructions = ast.request.factors
 
     ast.requests.forEach((instructions) => {
-      instructions.factors.forEach((token) => {
+      // TODO: Handle definitions.
+      (instructions.factors || []).forEach((token) => {
         evalInstruction(tokenToType(token), stack)
       })
     })
-    // for (let pos = 0, len = instructions.length; pos < len; pos += 1) {
-    //   token = instructions[pos]
-    //   evalInstruction(tokenToType(token), stack)
-    // }
   }
 
   return { execute: execute, run: run }
