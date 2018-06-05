@@ -21,16 +21,31 @@ function Parser (lexer) {
   }
 
   function cycle () {
-    const ast = {
+    const node = {
       type: 'Cycle',
-      request: term()
+      requests: []
     }
-    match('ReservedWord', 'END') || match('ReservedChar', '.')
-    expect(pos === tokens.length)
-    return ast
+
+    while (true) {
+      let next = compoundDefinition()
+      if (next) {
+        node.requests.push(next)
+        continue
+      }
+      next = term()
+      if (next && (match('ReservedWord', 'END') || match('ReservedChar', '.'))) {
+        node.requests.push(next)
+        continue
+      }
+      break
+    }
+
+    return node
   }
 
-  // function compoundDefinition () {}
+  function compoundDefinition () {
+    return false
+  }
 
   // function simpleDefinition () {}
 
@@ -94,7 +109,9 @@ function Parser (lexer) {
 
   return {
     parse: function parse () {
-      return cycle()
+      const ast = cycle()
+      expect(pos === tokens.length)
+      return ast
     }
   }
 }
