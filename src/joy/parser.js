@@ -1,6 +1,6 @@
 function Parser (lexer) {
-  var pos = 0
-  var tokens = lexer.tokenize()
+  let pos = 0
+  let tokens = lexer.tokenize()
 
   function expect (bool) {
     if (!bool) {
@@ -9,8 +9,8 @@ function Parser (lexer) {
   }
 
   function match (type, value) {
-    var token = tokens[pos]
-    var result = Boolean(token) &&
+    const token = tokens[pos]
+    const result = Boolean(token) &&
       token.type === type &&
       (arguments.length === 1 || token.value === value) &&
       token
@@ -21,7 +21,7 @@ function Parser (lexer) {
   }
 
   function cycle () {
-    var ast = {
+    const ast = {
       type: 'Cycle',
       request: term()
     }
@@ -39,11 +39,11 @@ function Parser (lexer) {
   // function literal () {}
 
   function term () {
-    var node = {
+    const node = {
       type: 'Term',
       factors: []
     }
-    var child = factor()
+    let child = factor()
     while (child) {
       node.factors.push(child)
       child = factor()
