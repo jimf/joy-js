@@ -1,7 +1,6 @@
 const Dictionary = require('./dictionary')
 const Lexer = require('../lexer')
 const Parser = require('../parser')
-const Stack = require('../stack')
 const T = require('./types')
 
 function tokenToType (token) {
@@ -17,6 +16,7 @@ function tokenToType (token) {
       // }
       // break
       return new T.JoyList(token.term.factors.map(tokenToType))
+    case 'Set': return new T.JoySet(token.members.map(tokenToType))
     default: /* do nothing */
   }
   throw new Error('Unhandled type conversion for token ' + token.type)
@@ -32,10 +32,9 @@ function arityToMessage (arity) {
   }
 }
 
-function Interpreter (joy) {
+function Interpreter (stack) {
   function run (input) {
     const definitions = Dictionary.stdlib()
-    const stack = new Stack()
     const ast = Parser(Lexer(input)).parse()
     const instructions = ast.request.factors
     let token
@@ -66,15 +65,9 @@ function Interpreter (joy) {
       token = instructions[pos]
       evalInstruction(tokenToType(token), stack)
     }
-
-    const top = stack.pop()
-    stack.push(top)
-    return top.toString()
   }
 
-  joy.run = run
-
-  return joy
+  return { run: run }
 }
 
 module.exports = Interpreter

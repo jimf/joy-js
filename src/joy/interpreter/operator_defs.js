@@ -215,8 +215,8 @@ module.exports = [
     signature: 'or      :  X Y  ->  Z',
     help: 'Z is the union of sets X and Y, logical disjunction for truth values.',
     handlers: [
-      [['Bool', 'Bool'], applyToTop2(liftA2(x => y => x || y))]
-      // TODO: Set handler
+      [['Bool', 'Bool'], applyToTop2(liftA2(x => y => x || y))],
+      [['Set', 'Set'], applyToTop2((x, y) => x.union(y))]
     ]
   },
 
@@ -228,8 +228,8 @@ Z is the symmetric difference of sets X and Y,
 logical exclusive disjunction for truth values.
 `.trim(),
     handlers: [
-      [['Bool', 'Bool'], applyToTop2(liftA2(x => y => (x || y) && !(x && y)))]
-      // TODO: Set handler
+      [['Bool', 'Bool'], applyToTop2(liftA2(x => y => (x || y) && !(x && y)))],
+      [['Set', 'Set'], applyToTop2((x, y) => x.symmetricDifference(y))]
     ]
   },
 
@@ -238,8 +238,8 @@ logical exclusive disjunction for truth values.
     signature: 'and      :  X Y  ->  Z',
     help: 'Z is the intersection of sets X and Y, logical conjunction for truth values.',
     handlers: [
-      [['Bool', 'Bool'], applyToTop2(liftA2(x => y => x && y))]
-      // TODO: Set handler
+      [['Bool', 'Bool'], applyToTop2(liftA2(x => y => x && y))],
+      [['Set', 'Set'], applyToTop2((x, y) => x.intersect(y))]
     ]
   },
 
@@ -248,8 +248,8 @@ logical exclusive disjunction for truth values.
     signature: 'not      :  X  ->  Y',
     help: 'Y is the complement of set X, logical negation for truth values.',
     handlers: [
-      [['Bool', 'Bool'], applyToTop(map(x => !x))]
-      // TODO: Set handler
+      [['Bool'], applyToTop(map(x => !x))]
+      // TODO: Set
     ]
   },
 
@@ -791,10 +791,16 @@ but leading "0" means base 8 and leading "0x" means base 16.
    * The list [X Y ..] becomes the new stack.
    */
 
-  /**
-   * cons      :  X A  ->  B
-   * Aggregate B is A with a new member X (first member for sequences).
-   */
+  {
+    name: 'cons',
+    signature: 'cons      :  X A  ->  B',
+    help: 'Aggregate B is A with a new member X (first member for sequences).',
+    handlers: [
+      [['*', 'List'], applyToTop2((X, A) => A.map(xs => [X].concat(xs)))],
+      [['Character', 'String'], applyToTop2((X, A) => A.map(cs => X.value.concat(cs)))]
+      // TODO: Set
+    ]
+  },
 
   /**
    * swons      :  A X  ->  B

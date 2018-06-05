@@ -17,6 +17,7 @@ function onInputKeydown (e) {
       inputEl.value = ''
     } catch (e) {
       outputEl.textContent = e.toString()
+      throw e
     }
   }
 }

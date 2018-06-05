@@ -1,5 +1,11 @@
 function JoyBase (value) {
   this.value = value
+  Object.defineProperty(this, 'isNonEmptyAggregate', {
+    get: () => {
+      if (!this.isAggregate) { return false }
+      return (this.length || this.value.length) !== 0
+    }
+  })
 }
 JoyBase.prototype.ap = function (other) {
   return other.map(this.value)
@@ -83,6 +89,7 @@ JoyChar.prototype.toNumber = function () {
 function JoyString (value) {
   JoyBase.call(this, value)
   this.isString = true
+  this.isAggregate = true
 }
 JoyString.prototype = Object.create(JoyBase.prototype)
 JoyString.prototype.constructor = JoyString
@@ -105,9 +112,6 @@ function JoyList (value) {
   JoyBase.call(this, value)
   this.isList = true
   this.isAggregate = true
-  Object.defineProperty(this, 'isNonEmptyAggregate', {
-    get: () => this.value.length !== 0
-  })
 }
 JoyList.prototype = Object.create(JoyBase.prototype)
 JoyList.prototype.constructor = JoyList
@@ -119,9 +123,6 @@ function JoyQuotation (value) {
   JoyBase.call(this, value)
   this.isQuotation = true
   this.isAggregate = true
-  Object.defineProperty(this, 'isNonEmptyAggregate', {
-    get: () => this.value.length !== 0
-  })
 }
 JoyQuotation.prototype = Object.create(JoyBase.prototype)
 JoyQuotation.prototype.constructor = JoyQuotation
@@ -130,15 +131,73 @@ JoyQuotation.prototype.toString = function () {
 }
 
 function JoySet (value) {
-  JoyBase.call(this, value)
+  JoyBase.call(this, null)
+  this._values = {}
+  this._smallest = -1
+  this._length = 0
+  value.forEach((val) => {
+    this.add(val)
+  })
   this.isSet = true
+  this.isAggregate = true
+  Object.defineProperty(this, 'length', {
+    get: () => this._length
+  })
 }
 JoySet.prototype = Object.create(JoyBase.prototype)
 JoySet.prototype.constructor = JoySet
+JoySet.prototype.add = function (item) {
+  // TODO: throw if value exceeds 31?
+  const value = item.toNumber()
+  if (this.has(value)) { return }
+  this._values[value] = item
+  this._length += 1
+  if (value < this._smallest) {
+    this._smallest = value
+  }
+  return this
+}
+JoySet.prototype.has = function (item) {
+  return !!this._values[item.value]
+}
+JoySet.prototype.forEach = function (fn) {
+  Object.keys(this._values).forEach((key) => {
+    fn(this._values[key])
+  })
+}
+JoySet.prototype.union = function (other) {
+  const result = new JoySet([])
+  this.forEach((x) => { result.add(x) })
+  other.forEach((x) => { result.add(x) })
+  return result
+}
+JoySet.prototype.intersect = function (other) {
+  const result = new JoySet([])
+  this.forEach((x) => {
+    if (other.has(x)) {
+      result.add(x)
+    }
+  })
+  return result
+}
+JoySet.prototype.symmetricDifference = function (other) {
+  const result = new JoySet([])
+  this.forEach((x) => {
+    if (!other.has(x)) {
+      result.add(x)
+    }
+  })
+  other.forEach((x) => {
+    if (!this.has(x)) {
+      result.add(x)
+    }
+  })
+  return result
+}
 JoySet.prototype.toString = function () {
   const entries = []
-  this.value.forEach((x) => { entries.push(x) })
-  return `[${entries.map(x => x.toString()).join(' ')}]`
+  this.forEach((x) => { entries.push(x.toString()) })
+  return `{${entries.join(' ')}}`
 }
 
 function JoySymbol (value) {

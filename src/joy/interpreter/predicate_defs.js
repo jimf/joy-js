@@ -10,6 +10,7 @@ module.exports = [
       [['Integer'], applyToTop(x => new T.JoyBool(x.value === 0))],
       [['Character'], applyToTop(x => new T.JoyBool(x.value === String.fromCharCode(0)))],
       [['List'], applyToTop(x => new T.JoyBool(x.length === 0))]
+      // TODO: Set, String
     ]
   },
 
@@ -21,6 +22,7 @@ module.exports = [
       [['List'], applyToTop(x => new T.JoyBool(x.length === 0 || x.length === 1))],
       [['Integer'], applyToTop(x => new T.JoyBool(x.value === 0 || x.value === 1))],
       [['Character'], applyToTop(x => new T.JoyBool(x.value === String.fromCharCode(0) || x.value === String.fromCharCode(1)))]
+      // TODO: Set, String
     ]
   },
 
@@ -131,7 +133,7 @@ Tests whether X equal to Y.  Also supports float.
     help: 'Tests whether aggregate A has X as a member.',
     handlers: [
       [['List', '*'], applyToTop2((x, y) => new T.JoyBool(x.value.find(m => m.value === y.value)))]
-      // TODO: is Set an aggregate?
+      // TODO: Set, String
     ]
   },
 
@@ -141,7 +143,7 @@ Tests whether X equal to Y.  Also supports float.
     help: 'Tests whether X is a member of aggregate A.',
     handlers: [
       [['List', '*'], applyToTop2((x, y) => new T.JoyBool(y.value.find(m => m.value === x.value)))]
-      // TODO: is Set an aggregate?
+      // TODO: Set, String
     ]
   },
 

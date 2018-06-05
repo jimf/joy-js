@@ -13,7 +13,8 @@ test('Joy examples', (t) => {
     { input: '20  3  4  +  *  6  -  100  rem', expected: '34' },
     { input: '\'A  32  +  succ  succ .', expected: 'c' },
     { input: 'false  true  false  not  and  not  or', expected: 'false' },
-    { input: '\'A  \'E  <  2  3  +  15  3  /  =  and', expected: 'true' }
+    { input: '\'A  \'E  <  2  3  +  15  3  /  =  and', expected: 'true' },
+    { input: '{1 3 5 7}  {2 4 6 8}  or  {}  or  {3 4 5 6 7 8 9 10}  and', expected: '{3 4 5 6 7 8}' }
   ]
   cases.forEach(({ input, expected }) => {
     t.equal(Joy().run(input), expected)

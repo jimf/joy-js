@@ -57,7 +57,26 @@ function Parser (lexer) {
       match('FloatConstant') ||
       match('CharacterConstant') ||
       match('StringConstant') ||
+      set() ||
       quotation()
+  }
+
+  function set () {
+    if (match('ReservedChar', '{')) {
+      const members = []
+      let member = match('CharacterConstant') || match('IntegerConstant')
+      while (member) {
+        members.push(member)
+        member = match('CharacterConstant') || match('IntegerConstant')
+      }
+      if (match('ReservedChar', '}')) {
+        return {
+          type: 'Set',
+          members: members
+        }
+      }
+    }
+    return false
   }
 
   function quotation () {

@@ -60,4 +60,5 @@ textarea[name=input]:focus {
 
 .output-result {
   padding: 10px;
+  white-space: pre;
 }
