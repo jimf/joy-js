@@ -1,38 +1,110 @@
-module.exports = () => [
-  /**
-   * help      :  ->
-   * Lists all defined symbols, including those from library files.
-   * Then lists all primitives of raw Joy
-   * (There is a variant: "_help" which lists hidden symbols).
-   */
+function fitToWidth (words, w) {
+  return words.reduce((acc, word) => {
+    if (acc.length === 0) { return word }
+    const newlineIdx = acc.lastIndexOf('\n')
+    const lineLength = newlineIdx === -1 ? acc.length : acc.length - newlineIdx - 1
+    return (lineLength + word.length + 1 <= w)
+      ? `${acc} ${word}`
+      : `${acc}\n${word}`
+  }, '')
+}
 
-  /**
-   * helpdetail      :  [ S1  S2  .. ]
-   * Gives brief help on each symbol S in the list.
-   */
+module.exports = (opts) => [
+  {
+    name: 'help',
+    signature: 'help      :  ->',
+    help: `
+Lists all defined symbols, including those from library files.
+Then lists all primitives of raw Joy
+(There is a variant: "_help" which lists hidden symbols).
+`.trim(),
+    handlers: [
+      [[], function () {
+        // NOTE: Not sure about proper ordering, or what definitions are considered primitive.
+        const defs = opts.dictionary.keys()
+        defs.reverse()
+        opts.output(fitToWidth(defs, 72))
+      }]
+    ]
+  },
+
+  {
+    name: 'helpdetail',
+    signature: 'helpdetail      :  [ S1  S2  .. ]',
+    help: 'Gives brief help on each symbol S in the list.',
+    handlers: [
+      [['List'], function (stack) {
+        const top = stack.pop()
+        top.value.forEach((word) => {
+          let def
+          try {
+            def = opts.dictionary.get(word.value)
+          } catch (e) {
+            // TODO: Ignore for now. Not sure what Joy does here.
+            return
+          }
+          if (def.signature && def.help) {
+            opts.output(`${def.signature}\n  ${def.help}\n`)
+          } else {
+            // TODO: Handle == entries
+          }
+        })
+      }]
+    ]
+  },
 
   /**
    * manual      :  ->
    * Writes this manual of all Joy primitives to output file.
    */
 
-  /**
-   * setautoput      :  I  ->
-   * Sets value of flag for automatic put to I (if I = 0, none;
-   * if I = 1, put; if I = 2, stack.
-   */
+  {
+    name: 'setautoput',
+    signature: 'setautoput      :  I  ->',
+    help: `
+Sets value of flag for automatic put to I (if I = 0, none;
+if I = 1, put; if I = 2, stack.
+`.trim(),
+    handlers: [
+      [['Integer'], function (stack) {
+        // NOTE: Not sure what should happen for out-of-range values.
+        const top = stack.pop()
+        opts.autoput(top.value)
+      }]
+    ]
+  },
 
-  /**
-   * setundeferror      :  I  ->
-   * Sets flag that controls behavior of undefined functions
-   * (0 = no error, 1 = error).
-   */
+  {
+    name: 'setundeferror',
+    signature: 'setundeferror      :  I  ->',
+    help: `
+Sets flag that controls behavior of undefined functions
+(0 = no error, 1 = error).
+`.trim(),
+    handlers: [
+      [['Integer'], function (stack) {
+        // NOTE: Not sure what should happen for out-of-range values.
+        const top = stack.pop()
+        opts.undefError(top.value)
+      }]
+    ]
+  },
 
-  /**
-   * setecho      :  I ->
-   * Sets value of echo flag for listing.
-   * I = 0: no echo, 1: echo, 2: with tab, 3: and linenumber.
-   */
+  {
+    name: 'setecho',
+    signature: 'setecho      :  I ->',
+    help: `
+Sets value of echo flag for listing.
+I = 0: no echo, 1: echo, 2: with tab, 3: and linenumber.
+`.trim(),
+    handlers: [
+      [['Integer'], function (stack) {
+        // NOTE: Not sure what should happen for out-of-range values.
+        const top = stack.pop()
+        opts.echo(top.value)
+      }]
+    ]
+  }
 
   /**
    * gc      :  ->

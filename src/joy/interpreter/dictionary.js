@@ -21,21 +21,25 @@ function Dictionary () {
     return definitions[key]
   }
 
-  return { define: define, get: get }
+  function keys () {
+    return Object.keys(definitions)
+  }
+
+  return { define: define, get: get, keys: keys }
 }
 
-Dictionary.stdlib = function stdlib (execute) {
+Dictionary.stdlib = function stdlib (opts) {
   const dict = Dictionary()
   function load (defs) {
     defs.forEach((def) => {
       dict.define(def.name, def)
     })
   }
-  load(CombinatorDefs(execute))
+  load(CombinatorDefs(opts.execute))
   load(OperandDefs)
   load(OperatorDefs)
   load(PredicateDefs)
-  load(MiscDefs())
+  load(MiscDefs(Object.assign({ dictionary: dict }, opts)))
   return dict
 }
 

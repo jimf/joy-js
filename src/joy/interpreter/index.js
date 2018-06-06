@@ -32,12 +32,20 @@ function arityToMessage (arity) {
   }
 }
 
-function Interpreter (stack) {
-  const definitions = Dictionary.stdlib(execute)
+function Interpreter (stack, options) {
+  const definitions = Dictionary.stdlib(
+    Object.assign({ execute: execute }, options)
+  )
 
   function evalInstruction (val) {
     if (val.isSymbol) {
-      const def = definitions.get(val.value)
+      let def
+      try {
+        def = definitions.get(val.value)
+      } catch (e) {
+        if (options.undefError() === 0) { return }
+        throw e
+      }
       const arity = def.handlers[0][0].length
       if (stack.length < arity) {
         throw new Error(`run time error: ${arityToMessage(arity)} needed for ${def.name}`)
@@ -49,7 +57,7 @@ function Interpreter (stack) {
           return paramType === '*' || p[`is${paramType}`]
         }))
       if (!handler) {
-        console.log(stack.peek(arity))
+        if (options.undefError() === 0) { return }
         throw new Error(`run time error: suitable parameters needed for ${def.name}`)
       }
       handler[1](stack)

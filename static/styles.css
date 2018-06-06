@@ -21,6 +21,21 @@ header {
   height: 40px;
 }
 
+nav {
+  margin: 10px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+nav li {
+  list-style: none;
+}
+
+nav a {
+  color: #c8c8c8;
+}
+
 .sections {
   border-top: 1px solid #2d333b;
   display: flex;
@@ -59,6 +74,8 @@ textarea[name=input]:focus {
 }
 
 .output-result {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 13px;
   padding: 10px;
   white-space: pre;
 }

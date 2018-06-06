@@ -26,7 +26,7 @@ function Joy () {
      * 0: No error (noop)
      * 1: (Default) Error
      */
-    undefinedIsError: 1
+    undefError: 1
   }
   const stack = new Stack()
   const output = new Output()
@@ -37,7 +37,7 @@ function Joy () {
   const interpreter = Interpreter(stack, {
     autoput: getSetFlag('autoput'),
     echo: getSetFlag('echo'),
-    undefinedIsError: getSetFlag('undefinedIsError'),
+    undefError: getSetFlag('undefError'),
     output: function (line) {
       output.write(line)
     }
