@@ -3,8 +3,29 @@ var Stack = require('./stack')
 
 function Joy () {
   const flags = {
-    autoput: 2,
-    echo: 0
+    /**
+     * Automatic output behavior with each instruction.
+     * 0: No automatic output
+     * 1: (Default) Output top of stack
+     * 2: Output entire stack
+     */
+    autoput: 1,
+
+    /**
+     * Input echoing behavior.
+     * 0: (Default) No echo
+     * 1: Echo input, no change
+     * 2: Echo input, prefixed with tab
+     * 3: Echo input, prefixed with line number, followed by tab
+     */
+    echo: 0,
+
+    /**
+     * How to treat undefined words.
+     * 0: No error (noop)
+     * 1: (Default) Error
+     */
+    undefinedIsError: 1
   }
   const stack = new Stack()
   const interpreter = Interpreter(stack)
