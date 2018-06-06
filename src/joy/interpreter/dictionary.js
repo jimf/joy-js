@@ -1,4 +1,5 @@
 const CombinatorDefs = require('./combinator_defs')
+const MiscDefs = require('./misc_defs')
 const OperandDefs = require('./operand_defs')
 const OperatorDefs = require('./operator_defs')
 const PredicateDefs = require('./predicate_defs')
@@ -34,6 +35,7 @@ Dictionary.stdlib = function stdlib (execute) {
   load(OperandDefs)
   load(OperatorDefs)
   load(PredicateDefs)
+  load(MiscDefs())
   return dict
 }
 
