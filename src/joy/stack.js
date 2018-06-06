@@ -23,6 +23,13 @@ Stack.prototype.peek = function peek (n) {
   return n === 0 ? [] : this._data.slice(-n)
 }
 
+Stack.prototype.restoreAfter = function restore (fn) {
+  const memento = this._data.slice(0)
+  const result = fn()
+  this._data = memento
+  return result
+}
+
 Stack.prototype.toString = function toSring () {
   return this._data.toString()
 }

@@ -18,7 +18,11 @@ test('Joy examples', (t) => {
     { input: '{3 7 5 1}  {2 4 6 8}  or  {}  or  {3 4 5 6 7 8 9 10 10} and.', expected: '{3 4 5 6 7 8}' },
     { input: '5  3 {2 1}  cons  cons  3  swap  cons.', expected: '{1 2 3 5}' },
     { input: '5  [6]  [1 2]  cons  cons  \'A  swap  cons.', expected: '[\'A 5 [6] 1 2]' },
-    { input: '"CECAB"  first.', expected: '\'C' }
+    { input: '"CECAB"  first.', expected: '\'C' },
+    { input: '2000 [1000 >]  [2 /]  [3 *]  ifte .', expected: '1000' },
+    { input: '[2 5 3]  0  [+]  fold .', expected: '10' },
+    { input: '[2 5 3]  0  [dup * +]  fold .', expected: '38' },
+    { input: '[3 4 5]    [0 [+] fold]   [size]   cleave   /.', expected: '4' }
   ]
   cases.forEach(({ input, expected }) => {
     t.equal(Joy().run(input), expected)

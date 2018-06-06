@@ -49,6 +49,7 @@ function Interpreter (stack) {
           return paramType === '*' || p[`is${paramType}`]
         }))
       if (!handler) {
+        console.log(stack.peek(arity))
         throw new Error(`run time error: suitable parameters needed for ${def.name}`)
       }
       handler[1](stack)

@@ -1,4 +1,3 @@
-// const { applyToTop2 } = require('./util')
 const T = require('./types')
 
 function trampoline (fn) {
@@ -11,21 +10,53 @@ function trampoline (fn) {
   }
 }
 
+function dequote (stack, execute, quote) {
+  quote = quote || stack.pop()
+  quote.value.forEach((p) => {
+    stack.push(p)
+    execute()
+  })
+}
+
 module.exports = execute => [
-  /**
-   * i      :  [P]  ->  ...
-   * Executes P. So, [P] i  ==  P.
-   */
+  {
+    name: 'i',
+    signature: 'i      :  [P]  ->  ...',
+    help: 'Executes P. So, [P] i  ==  P.',
+    handlers: [
+      [['List'], function (stack) {
+        dequote(stack, execute)
+      }]
+    ]
+  },
 
-  /**
-   * x      :  [P]i  ->  ...
-   * Executes P without popping [P]. So, [P] x  ==  [P] P.
-   */
+  {
+    name: 'x',
+    signature: 'x      :  [P]i  ->  ...',
+    help: 'Executes P without popping [P]. So, [P] x  ==  [P] P.',
+    handlers: [
+      [['List'], function (stack) {
+        const P = stack.pop()
+        stack.push(P)
+        dequote(stack, execute, P)
+      }]
+    ]
+  },
 
-  /**
-   * dip      :  X [P]  ->  ... X
-   * Saves X, executes P, pushes X back.
-   */
+  {
+    name: 'dip',
+    signature: 'dip      :  X [P]  ->  ... X',
+    help: 'Saves X, executes P, pushes X back.',
+    handlers: [
+      [['*', 'List'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        stack.push(top)
+        dequote(stack, execute)
+        stack.push(bottom)
+      }]
+    ]
+  },
 
   /**
    * app1      :  X [P]  ->  R
@@ -106,20 +137,62 @@ module.exports = execute => [
    * exactly three are removed from the stack.
    */
 
-  /**
-   * cleave      :  X [P1] [P2]  ->  R1 R2
-   * Executes P1 and P2, each with X on top, producing two results.
-   */
+  {
+    name: 'cleave',
+    signature: 'cleave      :  X [P1] [P2]  ->  R1 R2',
+    help: 'Executes P1 and P2, each with X on top, producing two results.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const P2 = stack.pop()
+        const P1 = stack.pop()
+        const X = stack.pop()
+        stack.push(X)
+        dequote(stack, execute, P1)
+        stack.push(X)
+        dequote(stack, execute, P2)
+      }]
+    ]
+  },
 
-  /**
-   * branch      :  B [T] [F]  ->  ...
-   * If B is true, then executes T else executes F.
-   */
+  {
+    name: 'branch',
+    signature: 'branch      :  B [T] [F]  ->  ...',
+    help: 'If B is true, then executes T else executes F.',
+    handlers: [
+      [['Bool', 'List', 'List'], function (stack) {
+        const F = stack.pop()
+        const T = stack.pop()
+        const B = stack.pop()
+        if (B.value) {
+          dequote(stack, execute, T)
+        } else {
+          dequote(stack, execute, F)
+        }
+      }]
+    ]
+  },
 
-  /**
-   * ifte      :  [B] [T] [F]  ->  ...
-   * Executes B. If that yields true, then executes T else executes F.
-   */
+  {
+    name: 'ifte',
+    signature: 'ifte      :  [B] [T] [F]  ->  ...',
+    help: 'Executes B. If that yields true, then executes T else executes F.',
+    handlers: [
+      [['List', 'List', 'List'], function (stack) {
+        const F = stack.pop()
+        const T = stack.pop()
+        const B = stack.pop()
+        const result = stack.restoreAfter(() => {
+          dequote(stack, execute, B)
+          return stack.pop().value
+        })
+        if (result) {
+          dequote(stack, execute, T)
+        } else {
+          dequote(stack, execute, F)
+        }
+      }]
+    ]
+  },
 
   /**
    * ifinteger      :  X [T] [E]  ->  ...
@@ -213,11 +286,26 @@ module.exports = execute => [
    * executes P for each member of A.
    */
 
-  /**
-   * fold      :  A V0 [P]  ->  V
-   * Starting with value V0, sequentially pushes members of aggregate A
-   * and combines with binary operator P to produce value V.
-   */
+  {
+    name: 'fold',
+    signature: 'fold      :  A V0 [P]  ->  V',
+    help: `
+Starting with value V0, sequentially pushes members of aggregate A
+and combines with binary operator P to produce value V.
+`.trim(),
+    handlers: [
+      [['List', '*', 'List'], function (stack) {
+        const P = stack.pop()
+        const seed = stack.pop()
+        const A = stack.pop()
+        stack.push(seed)
+        A.value.forEach((val) => {
+          stack.push(val)
+          dequote(stack, execute, P)
+        })
+      }]
+    ]
+  },
 
   {
     name: 'map',
@@ -233,10 +321,7 @@ collects results in sametype aggregate B.
         const result = []
         bottom.value.forEach((item) => {
           stack.push(item)
-          top.value.forEach((p) => {
-            stack.push(p)
-            execute()
-          })
+          dequote(stack, execute, top)
           result.push(stack.pop())
         })
         stack.push(new T.JoyList(result))
@@ -269,19 +354,6 @@ For aggregate X uses successive members and combines by C for new R.
       [['Integer', 'List', 'List'], function (stack) {
         const C = stack.pop()
         const I = stack.pop()
-
-        // function primrec (n) {
-        //   if (n === 0) {
-        //     return I.value[0]
-        //   }
-        //   stack.push(new T.JoyInt(n))
-        //   stack.push(primrec(n - 1))
-        //   C.value.forEach((p) => {
-        //     stack.push(p)
-        //     execute()
-        //   })
-        //   return stack.pop()
-        // }
 
         const primrec = trampoline(function _primrec (n) {
           if (n === 0) {

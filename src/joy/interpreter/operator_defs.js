@@ -841,10 +841,15 @@ but leading "0" means base 8 and leading "0x" means base 16.
    * X (= A[I]) is the I-th member of aggregate A.
    */
 
-  /**
-   * size      :  A  ->  I
-   * Integer I is the number of elements of aggregate A.
-   */
+  {
+    name: 'size',
+    signature: 'size      :  A  ->  I',
+    help: 'Integer I is the number of elements of aggregate A.',
+    handlers: [
+      [['Aggregate'], applyToTop(x =>
+        new T.JoyInt(x.length !== undefined ? x.length : x.value.length))]
+    ]
+  },
 
   /**
    * opcase      :  X [..[X Xs]..]  ->  [Xs]
