@@ -1,5 +1,6 @@
-var Interpreter = require('./interpreter')
-var Stack = require('./stack')
+const Interpreter = require('./interpreter')
+const Output = require('./output')
+const Stack = require('./stack')
 
 function Joy () {
   const flags = {
@@ -28,23 +29,35 @@ function Joy () {
     undefinedIsError: 1
   }
   const stack = new Stack()
-  const interpreter = Interpreter(stack)
+  const output = new Output()
+  const getSetFlag = flag => (val) => {
+    if (val === undefined) { return flags[flag] }
+    flags[flag] = val
+  }
+  const interpreter = Interpreter(stack, {
+    autoput: getSetFlag('autoput'),
+    echo: getSetFlag('echo'),
+    undefinedIsError: getSetFlag('undefinedIsError'),
+    output: function (line) {
+      output.write(line)
+    }
+  })
 
   return {
     run: function run (input) {
-      let output = []
+      output.clear()
 
       switch (flags.echo) {
         case 0: /* do nothing */ break
         case 1:
-          output.push(input)
+          output.write(`${input}\n`)
           break
         case 2:
-          output.push(`\t${input}`)
+          output.write(`\t${input}\n`)
           break
         case 3:
           // FIXME: should track line numbers
-          output.push(`1.\t${input}`)
+          output.write(`1.\t${input}\n`)
           break
       }
 
@@ -53,16 +66,16 @@ function Joy () {
       switch (flags.autoput) {
         case 0: /* do nothing */ break
         case 1:
-          output.push(stack.peek(1).toString())
+          output.write(stack.peek(1).toString() + '\n')
           break
         case 2:
           stack.peek(stack.length).forEach((item) => {
-            output.push(item.toString())
+            output.write(item.toString() + '\n')
           })
           break
       }
 
-      return output.join('\n')
+      return output.toString().replace(/\n$/, '')
     }
   }
 }
