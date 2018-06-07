@@ -1,4 +1,4 @@
-const { applyToTop, applyToTop2, applyToTop4 } = require('./util')
+const { applyToTop, applyToTop2, applyToTop4, cmp } = require('./util')
 const T = require('./types')
 
 const map = f => x => x.map(f)
@@ -700,13 +700,6 @@ but leading "0" means base 8 and leading "0x" means base 16.
     ]
   },
 
-  /**
-   * format      :  N C I J  ->  S
-   * S is the formatted version of N in mode C
-   * ('d or 'i = decimal, 'o = octal, 'x or
-   * 'X = hex with lower or upper case letters)
-   * with maximum width I and minimum width J.
-   */
   {
     name: 'format',
     signature: 'format      :  N C I J  ->  S',
@@ -719,7 +712,7 @@ with maximum width I and minimum width J.
     handlers: [
       [['Integer', 'Character', 'Integer', 'Integer'], applyToTop4((N, C, I, J) => {
         // TODO: Still some todos. Joy uses sprintf under the hood, which is
-        // non-trivial.
+        // non-trivial. Also, should this work for characters?
         if (!/[dioxX]/.test(C.value)) {
           throw new Error('run time error: one of: d i o x X needed for format')
         }
@@ -733,17 +726,34 @@ with maximum width I and minimum width J.
     ]
   },
 
-  /**
-   * formatf      :  F C I J  ->  S
-   * S is the formatted version of F in mode C
-   * ('e or 'E = exponential, 'f = fractional,
-   * 'g or G = general with lower or upper case letters)
-   * with maximum width I and precision J.
-   */
+  {
+    name: 'formatf',
+    signature: 'formatf      :  F C I J  ->  S',
+    help: `
+S is the formatted version of F in mode C
+('e or 'E = exponential, 'f = fractional,
+'g or G = general with lower or upper case letters)
+with maximum width I and precision J.
+`.trim(),
+    handlers: [
+      [['Float', 'Character', 'Integer', 'Integer'], applyToTop4((F, C, I, J) => {
+        // TODO: Still some todos. Joy uses sprintf under the hood, which is
+        // non-trivial.
+        if (!/[eEfgG]/.test(C.value)) {
+          throw new Error('run time error: one of: e E f g G needed for format')
+        }
+        // TODO: Do something with C
+        if (J.value === 0 && F.value === 0) { return '' }
+        // Not sure if max width is being handled correctly.
+        return new T.JoyString(F.value.toFixed(J.value).slice(0, I.value))
+      })]
+    ]
+  },
 
   /**
    * srand      :  I  ->
    * Sets the random integer seed to integer I.
+   * TODO: JavaScript does not expose the seed for its rng. May need to revisit if this is needed.
    */
 
   {
@@ -876,10 +886,20 @@ with maximum width I and minimum width J.
    * I is the current position of stream S.
    */
 
-  /**
-   * unstack      :  [X Y ..]  ->  ..Y X
-   * The list [X Y ..] becomes the new stack.
-   */
+  {
+    name: 'unstack',
+    signature: 'unstack      :  [X Y ..]  ->  ..Y X',
+    help: 'The list [X Y ..] becomes the new stack.',
+    handlers: [
+      [['List'], function (stack) {
+        const top = stack.pop()
+        stack.clear()
+        for (let i = top.value.length - 1; i >= 0; i -= 1) {
+          stack.push(top.value[i])
+        }
+      }]
+    ]
+  },
 
   {
     name: 'cons',
@@ -889,18 +909,22 @@ with maximum width I and minimum width J.
       [['*', 'List'], applyToTop2((X, A) => A.map(xs => [X].concat(xs)))],
       [['Character', 'String'], applyToTop2((X, A) => A.map(cs => X.value.concat(cs)))],
       [['Integer', 'Set'], applyToTop2((X, A) => A.union(new T.JoySet([X])))]
+      // TODO: Character into Set? I don't really understand the semantics of character sets
     ]
   },
 
-  /**
-   * swons      :  A X  ->  B
-   * Aggregate B is A with a new member X (first member for sequences).
-   */
+  {
+    name: 'swons',
+    signature: 'swons      :  A X  ->  B',
+    help: 'Aggregate B is A with a new member X (first member for sequences).',
+    handlers: [
+      [['List', '*'], applyToTop2((A, X) => A.map(xs => [X].concat(xs)))],
+      [['String', 'Character'], applyToTop2((A, X) => A.map(cs => X.value.concat(cs)))],
+      [['Set', 'Integer'], applyToTop2((A, X) => A.union(new T.JoySet([X])))]
+      // TODO: Character into Set? I don't really understand the semantics of character sets
+    ]
+  },
 
-  /**
-   * first      :  A  ->  F
-   * F is the first member of the non-empty aggregate A.
-   */
   {
     name: 'first',
     signature: 'first      :  A  ->  F',
@@ -910,16 +934,32 @@ with maximum width I and minimum width J.
     ]
   },
 
-  /**
-   * rest      :  A  ->  R
-   * R is the non-empty aggregate A with its first member removed.
-   */
+  {
+    name: 'rest',
+    signature: 'rest      :  A  ->  R',
+    help: 'R is the non-empty aggregate A with its first member removed.',
+    handlers: [
+      [['NonEmptyAggregate'], applyToTop(x => x.rest())]
+    ]
+  },
 
-  /**
-   * compare      :  A B  ->  I
-   * I (=-1,0,+1) is the comparison of aggregates A and B.
-   * The values correspond to the predicates <=, =, >=.
-   */
+  {
+    name: 'compare',
+    signature: 'compare      :  A B  ->  I',
+    help: `
+I (=-1,0,+1) is the comparison of aggregates A and B.
+The values correspond to the predicates <=, =, >=.
+`.trim(),
+    handlers: [
+      // NOTE: Help mentions aggregates, but then points to predicates. The
+      // predicate types made more sense, so I went with those. Might not be
+      // correct.
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyInt(cmp(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyInt(cmp(x, y)))],
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyInt(cmp(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyInt(cmp(x, y)))]
+    ]
+  },
 
   /**
    * at      :  A I  ->  X

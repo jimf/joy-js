@@ -1,4 +1,4 @@
-const { applyToTop, applyToTop2 } = require('./util')
+const { applyToTop, applyToTop2, eq, ne, lte, lt, gte, gt } = require('./util')
 const T = require('./types')
 
 module.exports = [
@@ -34,11 +34,11 @@ Either both X and Y are numeric or both are strings or symbols.
 Tests whether X greater than or equal to Y.  Also supports float.
 `.trim(),
     handlers: [
-      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() >= y.toNumber()))],
-      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() >= y.toNumber()))],
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))],
       // NOTE: Not sure if semantics of string/symbol comparison are correct here.
-      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(x.value >= y.value))],
-      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(x.value >= y.value))]
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))]
     ]
   },
 
@@ -50,11 +50,11 @@ Either both X and Y are numeric or both are strings or symbols.
 Tests whether X greater than Y.  Also supports float.
 `.trim(),
     handlers: [
-      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() > y.toNumber()))],
-      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() > y.toNumber()))],
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))],
       // NOTE: Not sure if semantics of string/symbol comparison are correct here.
-      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(x.value > y.value))],
-      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(x.value > y.value))]
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))]
     ]
   },
 
@@ -66,11 +66,11 @@ Either both X and Y are numeric or both are strings or symbols.
 Tests whether X less than or equal to Y.  Also supports float.
 `.trim(),
     handlers: [
-      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() <= y.toNumber()))],
-      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() <= y.toNumber()))],
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))],
       // NOTE: Not sure if semantics of string/symbol comparison are correct here.
-      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(x.value <= y.value))],
-      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(x.value <= y.value))]
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))]
     ]
   },
 
@@ -82,11 +82,11 @@ Either both X and Y are numeric or both are strings or symbols.
 Tests whether X less than Y.  Also supports float.
 `.trim(),
     handlers: [
-      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() < y.toNumber()))],
-      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() < y.toNumber()))],
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))],
       // NOTE: Not sure if semantics of string/symbol comparison are correct here.
-      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(x.value < y.value))],
-      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(x.value < y.value))]
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))]
     ]
   },
 
@@ -98,10 +98,10 @@ Either both X and Y are numeric or both are strings or symbols.
 Tests whether X not equal to Y.  Also supports float.
 `.trim(),
     handlers: [
-      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() !== y.toNumber()))],
-      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() !== y.toNumber()))],
-      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(x.value !== y.value))],
-      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(x.value !== y.value))]
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(ne(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(ne(x, y)))],
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(ne(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(ne(x, y)))]
     ]
   },
 
@@ -113,19 +113,21 @@ Either both X and Y are numeric or both are strings or symbols.
 Tests whether X equal to Y.  Also supports float.
 `.trim(),
     handlers: [
-      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() === y.toNumber()))],
-      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(x.toNumber() === y.toNumber()))],
-      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(x.value === y.value))],
-      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(x.value === y.value))]
+      [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(eq(x, y)))],
+      [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(eq(x, y)))],
+      [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(eq(x, y)))],
+      [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(eq(x, y)))]
     ]
   },
 
-  /**
-   * equal      :  T U  ->  B
-   * (Recursively) tests whether trees T and U are identical.
-   * TODO: not sure yet what trees will look like
-   * update: I think trees are simply nested quotations
-   */
+  {
+    name: 'equal',
+    signature: 'equal      :  T U  ->  B',
+    help: '(Recursively) tests whether trees T and U are identical.',
+    handlers: [
+      [['List', 'List'], applyToTop2((x, y) => new T.JoyBool(eq(x, y)))]
+    ]
+  },
 
   {
     name: 'has',

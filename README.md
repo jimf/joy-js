@@ -10,7 +10,7 @@ A JavaScript interpreter for the [Joy][] programming language.
 - [x] Parser
 - [ ] Interpreter (in progress)
   - [x] Operand words defined (Skipped: `conts`, `undefs`, `clock`, `stdin`, `stdout`, `stderr`)
-  - [ ] Operator words defined (Skipped: `frexp`, `strftime`)
+  - [ ] Operator words defined (Skipped: `frexp`, `strftime`, `srand`, `fclose`, `feof`, `ferror`, `fflush`, `fgetch`, `fgets`, `fopen`, `fread`, `fwrite`, `fremove`, `frename`, `fput`, `fputch`, `fputchars`, `fputstring`, `fseek`, `ftell`; partial functionality: `format`, `formatf`)
   - [ ] Predicate words defined
   - [ ] Combinator words defined
   - [ ] "Miscellaneous" words defined

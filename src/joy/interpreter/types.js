@@ -43,6 +43,12 @@ JoyInt.from = function (other) {
 JoyInt.prototype.toNumber = function () {
   return this.value
 }
+JoyInt.prototype.equals = function (other) {
+  return this.value === other.value
+}
+JoyInt.prototype.lte = function (other) {
+  return this.equals(other) || this.value < other.value
+}
 
 function JoyFloat (value) {
   JoyBase.call(this, value)
@@ -65,6 +71,12 @@ JoyFloat.from = function (other) {
 JoyFloat.prototype.toString = function () {
   const retval = this.value.toString()
   return retval.includes('.') ? retval : `${retval}.0`
+}
+JoyFloat.prototype.equals = function (other) {
+  return this.value === other.value
+}
+JoyFloat.prototype.lte = function (other) {
+  return this.equals(other) || this.value < other.value
 }
 
 function JoyChar (value) {
@@ -93,6 +105,12 @@ JoyChar.prototype.toString = function () {
   // TODO: Add handling for escape sequences
   return `'${this.value.toString()}`
 }
+JoyChar.prototype.equals = function (other) {
+  return this.value === other.value
+}
+JoyChar.prototype.lte = function (other) {
+  return this.equals(other) || this.value < other.value
+}
 
 function JoyString (value) {
   JoyBase.call(this, value)
@@ -109,6 +127,15 @@ JoyString.from = function (other) {
 }
 JoyString.prototype.first = function () {
   return new JoyChar(this.value.charAt(0))
+}
+JoyString.prototype.rest = function () {
+  return this.map(x => x.slice(1))
+}
+JoyString.prototype.equals = function (other) {
+  return this.value === other.value
+}
+JoyString.prototype.lte = function (other) {
+  return this.equals(other) || this.value < other.value
 }
 
 function JoyBool (value) {
@@ -129,22 +156,24 @@ JoyList.prototype.constructor = JoyList
 JoyList.prototype.toString = function () {
   return `[${this.value.map(x => x.toString()).join(' ')}]`
 }
-
-function JoyQuotation (value) {
-  JoyBase.call(this, value)
-  this.isQuotation = true
-  this.isAggregate = true
+JoyList.prototype.first = function () {
+  return this.value[0]
 }
-JoyQuotation.prototype = Object.create(JoyBase.prototype)
-JoyQuotation.prototype.constructor = JoyQuotation
-JoyQuotation.prototype.toString = function () {
-  return `[${this.value.map(x => x.toString()).join(' ')}]`
+JoyList.prototype.rest = function () {
+  return this.map(x => x.slice(1))
+}
+JoyList.prototype.equals = function (other) {
+  if (this.value.length !== other.value.length) { return false }
+  return this.value.every((x, idx) =>
+    x.equals
+      ? x.equals(other.value[idx])
+      : x.value === other.value[x].value)
 }
 
 function JoySet (value) {
   JoyBase.call(this, null)
   this._values = {}
-  this._smallest = -1
+  this._smallest = 32
   this._length = 0
   value.forEach((val) => {
     this.add(val)
@@ -215,10 +244,30 @@ JoySet.prototype.complement = function () {
   }
   return result
 }
+JoySet.prototype.first = function () {
+  return new JoyInt(this._smallest)
+}
+JoySet.prototype.rest = function () {
+  const result = new JoySet([])
+  this.forEach(x => {
+    if (x.value !== this._smallest) {
+      result.add(x)
+    }
+  })
+  return result
+}
 JoySet.prototype.toString = function () {
   const entries = []
   this.forEach((x) => { entries.push(x.toString()) })
   return `{${entries.join(' ')}}`
+}
+JoySet.prototype.equals = function (other) {
+  if (this.length !== other.length) { return false }
+  let result = true
+  this.forEach((val) => {
+    result = result && other.has(val)
+  })
+  return result
 }
 
 function JoySymbol (value) {
@@ -227,6 +276,12 @@ function JoySymbol (value) {
 }
 JoySymbol.prototype = Object.create(JoyBase.prototype)
 JoySymbol.prototype.constructor = JoySymbol
+JoySymbol.prototype.equals = function (other) {
+  return this.value === other.value
+}
+JoySymbol.prototype.lte = function (other) {
+  return this.equals(other) || this.value < other.value
+}
 
 module.exports = {
   JoyInt: JoyInt,
@@ -235,7 +290,6 @@ module.exports = {
   JoyString: JoyString,
   JoyBool: JoyBool,
   JoyList: JoyList,
-  JoyQuotation: JoyQuotation,
   JoySet: JoySet,
   JoySymbol: JoySymbol
 }
