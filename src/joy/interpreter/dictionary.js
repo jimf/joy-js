@@ -36,7 +36,7 @@ Dictionary.stdlib = function stdlib (opts) {
     })
   }
   load(CombinatorDefs(opts.execute))
-  load(OperandDefs)
+  load(OperandDefs(opts))
   load(OperatorDefs)
   load(PredicateDefs)
   load(MiscDefs(Object.assign({ dictionary: dict }, opts)))

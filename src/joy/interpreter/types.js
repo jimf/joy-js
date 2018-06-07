@@ -205,6 +205,16 @@ JoySet.prototype.symmetricDifference = function (other) {
   })
   return result
 }
+JoySet.prototype.complement = function () {
+  const result = new JoySet([])
+  for (let i = 0; i < 32; i += 1) {
+    const val = new JoyInt(i)
+    if (!this.has(val)) {
+      result.add(val)
+    }
+  }
+  return result
+}
 JoySet.prototype.toString = function () {
   const entries = []
   this.forEach((x) => { entries.push(x.toString()) })

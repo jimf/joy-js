@@ -17,6 +17,7 @@ function tokenToType (token) {
       // break
       return new T.JoyList(token.term.factors.map(tokenToType))
     case 'Set': return new T.JoySet(token.members.map(tokenToType))
+    case 'SimpleDefinition': return new T.JoyList(token.term.factors.map(tokenToType))
     default: /* do nothing */
   }
   throw new Error('Unhandled type conversion for token ' + token.type)
@@ -37,6 +38,31 @@ function Interpreter (stack, options) {
     Object.assign({ execute: execute }, options)
   )
 
+  function evalBuiltin (def) {
+    const arity = def.handlers[0][0].length
+    if (stack.length < arity) {
+      throw new Error(`run time error: ${arityToMessage(arity)} needed for ${def.name}`)
+    }
+    const params = stack.peek(arity)
+    const handler = def.handlers.find(handlerDef =>
+      params.every((p, i) => {
+        const paramType = handlerDef[0][i]
+        return paramType === '*' || p[`is${paramType}`]
+      }))
+    if (!handler) {
+      if (options.undefError() === 0) { return }
+      throw new Error(`run time error: suitable parameters needed for ${def.name}`)
+    }
+    handler[1](stack)
+  }
+
+  function evalDefined (def) {
+    def.definition.value.forEach((p) => {
+      stack.push(p)
+      execute()
+    })
+  }
+
   function evalInstruction (val) {
     if (val.isSymbol) {
       let def
@@ -46,21 +72,11 @@ function Interpreter (stack, options) {
         if (options.undefError() === 0) { return }
         throw e
       }
-      const arity = def.handlers[0][0].length
-      if (stack.length < arity) {
-        throw new Error(`run time error: ${arityToMessage(arity)} needed for ${def.name}`)
+      if (def.handlers) {
+        evalBuiltin(def)
+      } else {
+        evalDefined(def)
       }
-      const params = stack.peek(arity)
-      const handler = def.handlers.find(handlerDef =>
-        params.every((p, i) => {
-          const paramType = handlerDef[0][i]
-          return paramType === '*' || p[`is${paramType}`]
-        }))
-      if (!handler) {
-        if (options.undefError() === 0) { return }
-        throw new Error(`run time error: suitable parameters needed for ${def.name}`)
-      }
-      handler[1](stack)
     } else {
       stack.push(val)
     }
@@ -77,10 +93,18 @@ function Interpreter (stack, options) {
     const ast = Parser(Lexer(input)).parse()
 
     ast.requests.forEach((instructions) => {
-      // TODO: Handle definitions.
-      (instructions.factors || []).forEach((token) => {
-        evalInstruction(tokenToType(token), stack)
-      })
+      if (instructions.type === 'CompoundDefinition') {
+        (instructions.public.definitions || []).forEach((simpleDef) => {
+          definitions.define(simpleDef.symbol.value, {
+            name: simpleDef.symbol.value,
+            definition: tokenToType(simpleDef)
+          })
+        })
+      } else {
+        instructions.factors.forEach((token) => {
+          evalInstruction(tokenToType(token), stack)
+        })
+      }
     })
   }
 

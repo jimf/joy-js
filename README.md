@@ -9,8 +9,8 @@ A JavaScript interpreter for the [Joy][] programming language.
 - [x] Lexer
 - [x] Parser
 - [ ] Interpreter (in progress)
-  - [ ] Operand words defined
-  - [ ] Operator words defined
+  - [x] Operand words defined (Skipped: `conts`, `undefs`, `clock`, `stdin`, `stdout`, `stderr`)
+  - [ ] Operator words defined (Skipped: `frexp`, `strftime`)
   - [ ] Predicate words defined
   - [ ] Combinator words defined
   - [ ] "Miscellaneous" words defined

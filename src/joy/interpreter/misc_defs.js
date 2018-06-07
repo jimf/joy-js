@@ -1,3 +1,5 @@
+const T = require('./types')
+
 function fitToWidth (words, w) {
   return words.reduce((acc, word) => {
     if (acc.length === 0) { return word }
@@ -104,59 +106,97 @@ I = 0: no echo, 1: echo, 2: with tab, 3: and linenumber.
         opts.echo(top.value)
       }]
     ]
-  }
+  },
 
-  /**
-   * gc      :  ->
-   * Initiates garbage collection.
-   */
+  {
+    name: 'gc',
+    signature: '',
+    help: '',
+    handlers: [[[], Function.prototype]] // noop. JS is garbage collected as is.
+  },
 
   /**
    * system      :  "command"  ->
    * Escapes to shell, executes string "command".
    * The string may cause execution of another program.
    * When that has finished, the process returns to Joy.
+   * TODO: Not sure what to do for this. May just treat as noop. Doesn't apply for browser. Maybe node repl.
    */
 
   /**
    * getenv      :  "variable"  ->  "value"
    * Retrieves the value of the environment variable "variable".
+   * TODO: Only applicable to node repl.
    */
 
   /**
    * argv      :  -> A
    * Creates an aggregate A containing the interpreter's command line arguments.
+   * TODO: Not sure
    */
 
   /**
    * argc      :  -> I
    * Pushes the number of command line arguments. This is quivalent to 'argv size'.
+   * TODO: Not sure
    */
 
   /**
    * get      :  ->  F
    * Reads a factor from input and pushes it onto stack.
+   * TODO: Will need to update main loop to allow for async defs and i/o.
    */
 
-  /**
-   * put      :  X  ->
-   * Writes X to output, pops X off stack.
-   */
+  {
+    name: 'put',
+    signature: 'put      :  X  ->',
+    help: 'Writes X to output, pops X off stack.',
+    handlers: [
+      [['*'], function (stack) {
+        const top = stack.pop()
+        opts.output(`${top.toString()}\n`)
+      }]
+    ]
+  },
 
-  /**
-   * putch      :  N  ->
-   * N : numeric, writes character whose ASCII is N.
-   */
+  {
+    name: 'putch',
+    signature: 'putch      :  N  ->',
+    help: 'N : numeric, writes character whose ASCII is N.',
+    handlers: [
+      [['Character'], function (stack) {
+        const top = stack.pop()
+        opts.output(top.value)
+      }],
+      [['Integer'], function (stack) {
+        const top = stack.pop()
+        opts.output(T.JoyChar.from(top).value)
+      }]
+    ]
+  },
 
   /**
    * putchars      :  "abc.."  ->
    * Writes  abc.. (without quotes)
    */
+  {
+    name: 'putchars',
+    signature: 'putchars      :  "abc.."  ->',
+    help: 'Writes  abc.. (without quotes)',
+    handlers: [
+      [['String'], function (stack) {
+        const top = stack.pop()
+        opts.output(top.value)
+      }]
+    ]
+  }
 
   /**
    * include      :  "filnam.ext"  ->
    * Transfers input to file whose name is "filnam.ext".
    * On end-of-file returns to previous input file.
+   * TODO: Not sure if/how this will work yet. Thinking about implementing some
+   * of the base libs and throwing for anything else.
    */
 
   /**
