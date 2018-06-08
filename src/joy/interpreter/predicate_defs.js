@@ -9,8 +9,7 @@ module.exports = [
     handlers: [
       [['Integer'], applyToTop(x => new T.JoyBool(x.value === 0))],
       [['Character'], applyToTop(x => new T.JoyBool(x.value === String.fromCharCode(0)))],
-      [['List'], applyToTop(x => new T.JoyBool(x.length === 0))]
-      // TODO: Set, String
+      [['Aggregate'], applyToTop(x => new T.JoyBool(x.length === 0))]
     ]
   },
 
@@ -19,10 +18,9 @@ module.exports = [
     signature: 'small      :  X  ->  B',
     help: 'Tests whether aggregate X has 0 or 1 members, or numeric 0 or 1.',
     handlers: [
-      [['List'], applyToTop(x => new T.JoyBool(x.length === 0 || x.length === 1))],
+      [['Aggregate'], applyToTop(x => new T.JoyBool(x.length === 0 || x.length === 1))],
       [['Integer'], applyToTop(x => new T.JoyBool(x.value === 0 || x.value === 1))],
       [['Character'], applyToTop(x => new T.JoyBool(x.value === String.fromCharCode(0) || x.value === String.fromCharCode(1)))]
-      // TODO: Set, String
     ]
   },
 
@@ -36,7 +34,6 @@ Tests whether X greater than or equal to Y.  Also supports float.
     handlers: [
       [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))],
       [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))],
-      // NOTE: Not sure if semantics of string/symbol comparison are correct here.
       [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))],
       [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(gte(x, y)))]
     ]
@@ -52,7 +49,6 @@ Tests whether X greater than Y.  Also supports float.
     handlers: [
       [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))],
       [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))],
-      // NOTE: Not sure if semantics of string/symbol comparison are correct here.
       [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))],
       [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(gt(x, y)))]
     ]
@@ -68,7 +64,6 @@ Tests whether X less than or equal to Y.  Also supports float.
     handlers: [
       [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))],
       [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))],
-      // NOTE: Not sure if semantics of string/symbol comparison are correct here.
       [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))],
       [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(lte(x, y)))]
     ]
@@ -84,7 +79,6 @@ Tests whether X less than Y.  Also supports float.
     handlers: [
       [['Numeric', 'Numeric'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))],
       [['Float', 'Float'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))],
-      // NOTE: Not sure if semantics of string/symbol comparison are correct here.
       [['String', 'String'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))],
       [['Symbol', 'Symbol'], applyToTop2((x, y) => new T.JoyBool(lt(x, y)))]
     ]
@@ -134,8 +128,9 @@ Tests whether X equal to Y.  Also supports float.
     signature: 'has      :  A X  ->  B',
     help: 'Tests whether aggregate A has X as a member.',
     handlers: [
-      [['List', '*'], applyToTop2((x, y) => new T.JoyBool(x.value.find(m => m.value === y.value)))]
-      // TODO: Set, String
+      [['List', '*'], applyToTop2((x, y) => new T.JoyBool(x.value.find(m => m.value === y.value)))],
+      [['String', 'Character'], applyToTop2((x, y) => new T.JoyBool(x.value.indexOf(y.value) >= 0))],
+      [['Set', 'Integer'], applyToTop2((x, y) => new T.JoyBool(x.has(y)))]
     ]
   },
 
@@ -144,8 +139,9 @@ Tests whether X equal to Y.  Also supports float.
     signature: 'in      :  X A  ->  B',
     help: 'Tests whether X is a member of aggregate A.',
     handlers: [
-      [['List', '*'], applyToTop2((x, y) => new T.JoyBool(y.value.find(m => m.value === x.value)))]
-      // TODO: Set, String
+      [['List', '*'], applyToTop2((x, y) => new T.JoyBool(y.value.find(m => m.value === x.value)))],
+      [['String', 'Character'], applyToTop2((x, y) => new T.JoyBool(y.value.indexOf(x.value) >= 0))],
+      [['Set', 'Integer'], applyToTop2((x, y) => new T.JoyBool(y.has(x)))]
     ]
   },
 
@@ -154,7 +150,7 @@ Tests whether X equal to Y.  Also supports float.
     signature: 'integer      :  X  ->  B',
     help: 'Tests whether X is an integer.',
     handlers: [
-      [['*'], applyToTop(x => new T.JoyBool(!!x.isBool))]
+      [['*'], applyToTop(x => new T.JoyBool(!!x.isInteger))]
     ]
   },
 
@@ -203,11 +199,14 @@ Tests whether X equal to Y.  Also supports float.
     ]
   },
 
-  /**
-   * leaf      :  X  ->  B
-   * Tests whether X is not a list.
-   * TODO: unsure of semanics here. would the empty list inside a list be a leaf?
-   */
+  {
+    name: 'leaf',
+    signature: 'leaf      :  X  ->  B',
+    help: 'Tests whether X is not a list.',
+    handlers: [
+      [['*'], applyToTop(x => new T.JoyBool(!x.isList))]
+    ]
+  },
 
   /**
    * user      :  X  ->  B
@@ -215,10 +214,6 @@ Tests whether X equal to Y.  Also supports float.
    * TODO: not sure how this will be distinguished yet
    */
 
-  /**
-   * float      :  R  ->  B
-   * Tests whether R is a float.
-   */
   {
     name: 'float',
     signature: 'float      :  R  ->  B',

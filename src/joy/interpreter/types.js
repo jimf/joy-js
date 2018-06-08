@@ -119,6 +119,10 @@ function JoyString (value) {
 }
 JoyString.prototype = Object.create(JoyBase.prototype)
 JoyString.prototype.constructor = JoyString
+JoyString.prototype.toString = function () {
+  // TODO: Add handling for escape sequences
+  return `"${this.value}"`
+}
 JoyString.from = function (other) {
   if (other.isCharacter) {
     return new JoyString(other.value)
@@ -170,10 +174,11 @@ JoyList.prototype.equals = function (other) {
       : x.value === other.value[x].value)
 }
 
+const JOY_SET_SIZE = 32
 function JoySet (value) {
   JoyBase.call(this, null)
   this._values = {}
-  this._smallest = 32
+  this._smallest = JOY_SET_SIZE
   this._length = 0
   value.forEach((val) => {
     this.add(val)
@@ -204,6 +209,13 @@ JoySet.prototype.forEach = function (fn) {
   Object.keys(this._values).forEach((key) => {
     fn(this._values[key])
   })
+}
+JoySet.prototype.forEachOrdered = function (fn) {
+  for (let i = 0; i < JOY_SET_SIZE; i += 1) {
+    if (this._values[i] !== undefined) {
+      fn(this._values[i])
+    }
+  }
 }
 JoySet.prototype.union = function (other) {
   const result = new JoySet([])
@@ -236,7 +248,7 @@ JoySet.prototype.symmetricDifference = function (other) {
 }
 JoySet.prototype.complement = function () {
   const result = new JoySet([])
-  for (let i = 0; i < 32; i += 1) {
+  for (let i = 0; i < JOY_SET_SIZE; i += 1) {
     const val = new JoyInt(i)
     if (!this.has(val)) {
       result.add(val)
@@ -266,6 +278,29 @@ JoySet.prototype.equals = function (other) {
   let result = true
   this.forEach((val) => {
     result = result && other.has(val)
+  })
+  return result
+}
+JoySet.prototype.drop = function (n) {
+  const result = new JoySet([])
+  let dropped = 0
+  this.forEachOrdered((x) => {
+    if (dropped < n) {
+      dropped += 1
+    } else {
+      result.add(x)
+    }
+  })
+  return result
+}
+JoySet.prototype.take = function (n) {
+  const result = new JoySet([])
+  let taken = 0
+  this.forEachOrdered((x) => {
+    if (taken < n) {
+      taken += 1
+      result.add(x)
+    }
   })
   return result
 }

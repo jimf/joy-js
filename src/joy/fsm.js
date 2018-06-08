@@ -17,21 +17,18 @@ function Fsm (opts) {
       var pred = rule[0].test
         ? function (c) { return rule[0].test(c) }
         : function (c) { return c === rule[0] }
-      return [pred, rule[1]]
+      return [pred, rule[1], rule[2]]
     })
-    acc[s] = function (input) {
+    acc[s] = function (input, acc2) {
       var match = rules.find(function (rule) { return rule[0](input) })
-      return match && match[1]
+      return match && [match[1], match[2] ? match[2](acc2, input) : acc2]
     }
     return acc
   }, {})
 
-  function nextState (state, input) {
-    var result = nextStates[state] && nextStates[state](input)
-    if (result === undefined && opts.default) {
-      result = opts.default
-    }
-    return result
+  function nextState (state, input, acc) {
+    if (nextStates[state] === undefined) { return [opts.default, acc] }
+    return nextStates[state](input, acc) || [opts.default, acc]
   }
 
   /**
@@ -41,21 +38,23 @@ function Fsm (opts) {
    * @return {object|null} Result object if fsm reaches an accept state; null otherwise
    */
   function run (input) {
-    var currState = opts.initial
-    var state
-    var result = ''
-    var c
+    let currState = opts.initial
+    let state
+    let result = ''
+    let acc = opts.seed
 
-    for (var i = 0, len = input.length; i < len; i += 1) {
-      c = input.charAt(i)
-      state = nextState(currState, c)
+    for (let i = 0, len = input.length; i < len; i += 1) {
+      const c = input.charAt(i)
+      const next = nextState(currState, c, acc)
+      state = next[0]
+      acc = next[1]
       if (state === opts.stop) { break }
       result += c
       currState = state
     }
 
     return opts.accepting.includes(currState)
-      ? { value: result, state: currState }
+      ? { value: result, state: currState, acc: acc }
       : null
   }
 

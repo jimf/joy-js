@@ -23,6 +23,8 @@ test('Joy examples', (t) => {
     { input: '[\'A 5 [6] 1 2]  rest.', expected: '[5 [6] 1 2]' },
     { input: '{5 2 3}  first.', expected: '2' },
     { input: '{5 2 3}  rest.', expected: '{3 5}' },
+    { input: '[1 2 3 4 5] rest  rest  rest  rest  first.', expected: '5' },
+    { input: '[1 2 3 4 5] 5 at.', expected: '5' },
     { input: '2000 [1000 >]  [2 /]  [3 *]  ifte .', expected: '1000' },
     { input: '[2 5 3]  0  [+]  fold .', expected: '10' },
     { input: '[2 5 3]  0  [dup * +]  fold .', expected: '38' },

@@ -101,17 +101,38 @@ var StringFsm = Fsm({
   stop: 'NoNextState',
   accepting: ['String'],
   default: 'NoNextState',
+  seed: '',
   states: {
     Initial: [
       ['"', 'BeginString']
     ],
-    'BeginString': [
+    BeginString: [
       ['"', 'String'],
       ['\\', 'BeginStringEscape'],
-      [/./, 'BeginString']
+      [/./, 'BeginString', (acc, s) => acc + s]
     ],
-    'BeginStringEscape': [
-      [/./, 'BeginString']
+    BeginStringEscape: [
+      [/[ntbrf'"]/, 'BeginString', (acc, s) => {
+        switch (s) {
+          case 'n': return acc + '\n'
+          case 't': return acc + '\t'
+          case 'b': return acc + '\b'
+          case 'r': return acc + '\r'
+          case 'f': return acc + '\f'
+          case "'": return acc + "'"
+          case '"': return acc + '"'
+        }
+      }],
+      [/\d/, 'BeginStringEscapedAscii0', (acc, s) => acc + s]
+    ],
+    BeginStringEscapedAscii0: [
+      [/\d/, 'BeginStringEscapedAscii1', (acc, s) => acc + s]
+    ],
+    BeginStringEscapedAscii1: [
+      [/\d/, 'BeginString', (acc, s) => {
+        const ascii = parseInt(acc.slice(-2) + s, 8)
+        return acc.slice(0, -2) + String.fromCharCode(ascii)
+      }]
     ]
   }
 })
@@ -205,8 +226,7 @@ function Lexer (input) {
     var result = StringFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
-    // TODO: add handling for escapes in value
-    return new Token('StringConstant', result.value, result.value.slice(1, -1))
+    return new Token('StringConstant', result.value, result.acc)
   }
 
   function recognizeSymbol () {

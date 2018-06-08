@@ -10,8 +10,8 @@ A JavaScript interpreter for the [Joy][] programming language.
 - [x] Parser
 - [ ] Interpreter (in progress)
   - [x] Operand words defined (Skipped: `conts`, `undefs`, `clock`, `stdin`, `stdout`, `stderr`)
-  - [ ] Operator words defined (Skipped: `frexp`, `strftime`, `srand`, `fclose`, `feof`, `ferror`, `fflush`, `fgetch`, `fgets`, `fopen`, `fread`, `fwrite`, `fremove`, `frename`, `fput`, `fputch`, `fputchars`, `fputstring`, `fseek`, `ftell`; partial functionality: `format`, `formatf`)
-  - [ ] Predicate words defined
+  - [x] Operator words defined (Skipped: `frexp`, `strftime`, `srand`, `fclose`, `feof`, `ferror`, `fflush`, `fgetch`, `fgets`, `fopen`, `fread`, `fwrite`, `fremove`, `frename`, `fput`, `fputch`, `fputchars`, `fputstring`, `fseek`, `ftell`, `opcase`, `case`, `name`, `intern`, `body`; partial functionality: `format`, `formatf`)
+  - [x] Predicate words defined (Skipped: `user`, `file`)
   - [ ] Combinator words defined
   - [ ] "Miscellaneous" words defined
 - [ ] Demo site (simple site available, must run locally)
@@ -23,9 +23,6 @@ A JavaScript interpreter for the [Joy][] programming language.
   - [ ] Joy tutorial or similar?
 
 ## How to run
-
-For the time being, the only way to run __joy-js__ is through Node directly.
-Demo site is planned.
 
 The interpreter may be run locally via the Node repl, or via a local express
 server.

@@ -95,21 +95,21 @@ test('Lexer recognizes character constants', function (t) {
 
 test('Lexer recognizes string constants', function (t) {
   var cases = [
-    '""',
-    '"hello world"',
-    '"123"',
-    '"\\n"',
-    '"\\t"',
-    '"\\b"',
-    '"\\r"',
-    '"\\f"',
-    '"\\\'"',
-    '"\\""',
-    '"\\042"',
-    '" "'
+    ['""', ''],
+    ['"hello world"', 'hello world'],
+    ['"123"', '123'],
+    ['"\\n"', '\n'],
+    ['"\\t"', '\t'],
+    ['"\\b"', '\b'],
+    ['"\\r"', '\r'],
+    ['"\\f"', '\f'],
+    ['"\\\'"', "'"],
+    ['"\\""', '"'],
+    ['"\\042"', '"'],
+    ['" "', ' ']
   ]
-  cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'StringConstant', rawValue: input, value: input.slice(1, -1) }])
+  cases.forEach(function ([input, value]) {
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'StringConstant', rawValue: input, value: value }])
   })
   t.end()
 })

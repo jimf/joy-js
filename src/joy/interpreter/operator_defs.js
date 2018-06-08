@@ -1,4 +1,4 @@
-const { applyToTop, applyToTop2, applyToTop4, cmp } = require('./util')
+const { applyToTop, applyToTop2, applyToTop3, applyToTop4, cmp } = require('./util')
 const T = require('./types')
 
 const map = f => x => x.map(f)
@@ -12,7 +12,7 @@ const lpad = (s, w, c) => {
   return result
 }
 
-module.exports = [
+module.exports = (opts) => [
   {
     name: 'id',
     signature: 'id      :  ->',
@@ -961,15 +961,25 @@ The values correspond to the predicates <=, =, >=.
     ]
   },
 
-  /**
-   * at      :  A I  ->  X
-   * X (= A[I]) is the member of A at position I.
-   */
+  {
+    name: 'at',
+    signature: 'at      :  A I  ->  X',
+    help: 'X (= A[I]) is the member of A at position I.',
+    handlers: [
+      [['List', 'Integer'], applyToTop2((A, I) => A.value[I.value - 1])],
+      [['String', 'Integer'], applyToTop2((A, I) => A.value.charAt(I.value - 1))]
+    ]
+  },
 
-  /**
-   * of      :  I A  ->  X
-   * X (= A[I]) is the I-th member of aggregate A.
-   */
+  {
+    name: 'of',
+    signature: 'of      :  I A  ->  X',
+    help: 'X (= A[I]) is the I-th member of aggregate A.',
+    handlers: [
+      [['List', 'Integer'], applyToTop2((I, A) => A.value[I.value - 1])],
+      [['String', 'Integer'], applyToTop2((I, A) => A.value.charAt(I.value - 1))]
+    ]
+  },
 
   {
     name: 'size',
@@ -984,32 +994,62 @@ The values correspond to the predicates <=, =, >=.
   /**
    * opcase      :  X [..[X Xs]..]  ->  [Xs]
    * Indexing on type of X, returns the list [Xs].
+   * TODO: what does this do?
    */
 
   /**
    * case      :  X [..[X Y]..]  ->  Y i
    * Indexing on the value of X, execute the matching Y.
+   * TODO: what does this do?
    */
 
-  /**
-   * uncons      :  A  ->  F R
-   * F and R are the first and the rest of non-empty aggregate A.
-   */
+  {
+    name: 'uncons',
+    signature: 'uncons      :  A  ->  F R',
+    help: 'F and R are the first and the rest of non-empty aggregate A.',
+    handlers: [
+      [['NonEmptyAggregate'], function (stack) {
+        const top = stack.pop()
+        stack.push(top.first())
+        stack.push(top.rest())
+      }]
+    ]
+  },
 
-  /**
-   * unswons      :  A  ->  R F
-   * R and F are the rest and the first of non-empty aggregate A.
-   */
+  {
+    name: 'unswons',
+    signature: 'unswons      :  A  ->  R F',
+    help: 'R and F are the rest and the first of non-empty aggregate A.',
+    handlers: [
+      [['NonEmptyAggregate'], function (stack) {
+        const top = stack.pop()
+        stack.push(top.rest())
+        stack.push(top.first())
+      }]
+    ]
+  },
 
-  /**
-   * drop      :  A N  ->  B
-   * Aggregate B is the result of deleting the first N elements of A.
-   */
+  {
+    name: 'drop',
+    signature: 'drop      :  A N  ->  B',
+    help: 'Aggregate B is the result of deleting the first N elements of A.',
+    handlers: [
+      [['List', 'Integer'], applyToTop2((A, N) => A.map(xs => xs.slice(N.value)))],
+      [['String', 'Integer'], applyToTop2((A, N) => A.map(xs => xs.slice(N.value)))],
+      [['Set', 'Integer'], applyToTop2((A, N) => A.drop(N.value))]
+    ]
+  },
 
-  /**
-   * take      :  A N  ->  B
-   * Aggregate B is the result of retaining just the first N elements of A.
-   */
+  {
+    name: 'take',
+    signature: 'take      :  A N  ->  B',
+    help: 'Aggregate B is the result of retaining just the first N elements of A.',
+    handlers: [
+      [['List', 'Integer'], applyToTop2((A, N) => A.map(xs => xs.slice(0, N.value)))],
+      [['String', 'Integer'], applyToTop2((A, N) => A.map(xs => xs.slice(0, N.value)))],
+      [['Set', 'Integer'], applyToTop2((A, N) => A.take(N.value))]
+    ]
+  },
 
   {
     name: 'concat',
@@ -1018,13 +1058,21 @@ The values correspond to the predicates <=, =, >=.
     handlers: [
       [['List', 'List'], applyToTop2(liftA2(x => y => x.concat(y)))]
     ]
-  }
+  },
 
-  /**
-   * enconcat      :  X S T  ->  U
-   * Sequence U is the concatenation of sequences S and T
-   * with X inserted between S and T (== swapd cons concat)
-   */
+  {
+    name: 'enconcat',
+    signature: 'enconcat      :  X S T  ->  U',
+    help: `
+Sequence U is the concatenation of sequences S and T
+with X inserted between S and T (== swapd cons concat)
+`.trim(),
+    handlers: [
+      [['*', 'List', 'List'], applyToTop3((x, s, t) => s.map(ss => ss.concat([x.value]).concat(t.value)))],
+      [['Character', 'String', 'String'], applyToTop3((x, s, t) => s.map(ss => ss.concat([x.value]).concat(t.value)))],
+      [['Integer', 'Set', 'Set'], applyToTop3((x, s, t) => s.union(new T.JoySet([x]).union(t)))]
+    ]
+  },
 
   /**
    * name      :  sym  ->  "sym"
@@ -1032,13 +1080,21 @@ The values correspond to the predicates <=, =, >=.
    * for literals sym the result string is its type.
    */
 
-  /**
-   * intern      :  "sym"  -> sym
-   * Pushes the item whose name is "sym".
-   */
+  {
+    name: 'intern',
+    signature: 'intern      :  "sym"  -> sym',
+    help: 'Pushes the item whose name is "sym".',
+    handlers: [
+      [['String'], applyToTop(x => new T.JoySymbol(x.value))]
+    ]
+  },
 
-  /**
-   * body      :  U  ->  [P]
-   * Quotation [P] is the body of user-defined symbol U.
-   */
+  {
+    name: 'body',
+    signature: 'body      :  U  ->  [P]',
+    help: 'Quotation [P] is the body of user-defined symbol U.',
+    handlers: [
+      [['Symbol'], applyToTop(x => opts.dictionary.get(x.value).definition)]
+    ]
+  }
 ]

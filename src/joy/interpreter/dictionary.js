@@ -35,11 +35,12 @@ Dictionary.stdlib = function stdlib (opts) {
       dict.define(def.name, def)
     })
   }
+  opts = Object.assign({ dictionary: dict }, opts)
   load(CombinatorDefs(opts.execute))
   load(OperandDefs(opts))
-  load(OperatorDefs)
+  load(OperatorDefs(opts))
   load(PredicateDefs)
-  load(MiscDefs(Object.assign({ dictionary: dict }, opts)))
+  load(MiscDefs(opts))
   return dict
 }
 
