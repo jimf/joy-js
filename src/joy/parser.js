@@ -1,10 +1,28 @@
-function Parser (lexer) {
-  let pos = 0
-  let tokens = lexer.tokenize()
+const Lexer = require('./lexer')
+
+function Parser () {
+  let input
+  let pos
+  let tokens
+
+  function formatUnexpectedToken () {
+    let lineStart = input.lastIndexOf('\n', tokens[pos].pos)
+    let lineEnd = input.indexOf('\n', tokens[pos].pos)
+    if (lineStart === -1) {
+      lineStart = 0
+    } else {
+      lineStart += 1 // Skip the newline
+    }
+    if (lineEnd === -1) { lineEnd = input.length - 1 }
+    const line = input.slice(lineStart, lineEnd)
+    const charsUpToError = tokens[pos].pos - lineStart
+    const spacesToCaret = new Array(charsUpToError).fill(' ').join('')
+    return `${line}\n${spacesToCaret}^`
+  }
 
   function expect (bool, msg) {
     if (!bool) {
-      msg = msg || 'Syntax Error: Unexpected token "' + tokens[pos].value + '"'
+      msg = msg || `Syntax Error: Unexpected token "${tokens[pos].value}"\n\n${formatUnexpectedToken()}`
       throw new Error(msg)
     }
   }
@@ -163,7 +181,11 @@ function Parser (lexer) {
   }
 
   return {
-    parse: function parse () {
+    parse: function parse (inp) {
+      input = inp
+      const lexer = Lexer(input)
+      pos = 0
+      tokens = lexer.tokenize()
       const ast = cycle()
       expect(pos === tokens.length)
       return ast

@@ -29,7 +29,7 @@ test('Lexer skips comments', function (t) {
 
 test('Lexer recognizes reserved characters', function (t) {
   '[]{};.'.split('').forEach(function (c) {
-    t.deepEqual(Lexer(c).tokenize(), [{ type: 'ReservedChar', rawValue: c, value: c }])
+    t.deepEqual(Lexer(c).tokenize(), [{ type: 'ReservedChar', rawValue: c, value: c, pos: 0 }])
   })
   t.end()
 })
@@ -50,7 +50,7 @@ test('Lexer recognizes integer constants', function (t) {
       '0XABCDEF'
     ])
   cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'IntegerConstant', rawValue: input, value: toNumber(input) }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'IntegerConstant', rawValue: input, value: toNumber(input), pos: 0 }])
   })
   t.end()
 })
@@ -67,7 +67,7 @@ test('Lexer recognizes float constants', function (t) {
       '-5.5E9'
     ])
   cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'FloatConstant', rawValue: input, value: toNumber(input) }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'FloatConstant', rawValue: input, value: toNumber(input), pos: 0 }])
   })
   t.end()
 })
@@ -80,16 +80,16 @@ test('Lexer recognizes character constants', function (t) {
     .concat(special)
     .map(function (testcase) { return "'" + testcase })
   cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'CharacterConstant', rawValue: input, value: input.slice(1) }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'CharacterConstant', rawValue: input, value: input.slice(1), pos: 0 }])
   })
-  t.deepEqual(Lexer('\'\\n').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\n', value: '\n' }])
-  t.deepEqual(Lexer('\'\\t').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\t', value: '\t' }])
-  t.deepEqual(Lexer('\'\\b').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\b', value: '\b' }])
-  t.deepEqual(Lexer('\'\\r').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\r', value: '\r' }])
-  t.deepEqual(Lexer('\'\\f').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\f', value: '\f' }])
-  t.deepEqual(Lexer('\'\\\'').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\\'', value: "'" }])
-  t.deepEqual(Lexer('\'\\"').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\"', value: '"' }])
-  t.deepEqual(Lexer('\'\\042').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\042', value: String.fromCharCode(34) }])
+  t.deepEqual(Lexer('\'\\n').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\n', value: '\n', pos: 0 }])
+  t.deepEqual(Lexer('\'\\t').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\t', value: '\t', pos: 0 }])
+  t.deepEqual(Lexer('\'\\b').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\b', value: '\b', pos: 0 }])
+  t.deepEqual(Lexer('\'\\r').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\r', value: '\r', pos: 0 }])
+  t.deepEqual(Lexer('\'\\f').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\f', value: '\f', pos: 0 }])
+  t.deepEqual(Lexer('\'\\\'').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\\'', value: "'", pos: 0 }])
+  t.deepEqual(Lexer('\'\\"').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\"', value: '"', pos: 0 }])
+  t.deepEqual(Lexer('\'\\042').tokenize(), [{ type: 'CharacterConstant', rawValue: '\'\\042', value: String.fromCharCode(34), pos: 0 }])
   t.end()
 })
 
@@ -109,14 +109,14 @@ test('Lexer recognizes string constants', function (t) {
     ['" "', ' ']
   ]
   cases.forEach(function ([input, value]) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'StringConstant', rawValue: input, value: value }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'StringConstant', rawValue: input, value: value, pos: 0 }])
   })
   t.end()
 })
 
 test('Lexer recognizes reserved words', function (t) {
   ['MODULE', 'PRIVATE', 'HIDE', 'PUBLIC', 'IN', 'DEFINE', 'LIBRA', 'END'].forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'ReservedWord', rawValue: input, value: input }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'ReservedWord', rawValue: input, value: input, pos: 0 }])
   })
   t.end()
 })
@@ -132,27 +132,27 @@ test('Lexer recognizes atomic symbols', function (t) {
       'helloWorld123_-='
     ])
   cases.forEach(function (input) {
-    t.deepEqual(Lexer(input).tokenize(), [{ type: 'AtomicSymbol', rawValue: input, value: input }])
+    t.deepEqual(Lexer(input).tokenize(), [{ type: 'AtomicSymbol', rawValue: input, value: input, pos: 0 }])
   })
-  t.deepEqual(Lexer('true').tokenize(), [{ type: 'AtomicSymbol', rawValue: 'true', value: true }])
-  t.deepEqual(Lexer('false').tokenize(), [{ type: 'AtomicSymbol', rawValue: 'false', value: false }])
+  t.deepEqual(Lexer('true').tokenize(), [{ type: 'AtomicSymbol', rawValue: 'true', value: true, pos: 0 }])
+  t.deepEqual(Lexer('false').tokenize(), [{ type: 'AtomicSymbol', rawValue: 'false', value: false, pos: 0 }])
   t.end()
 })
 
 test('Lexer recognizes token sequences', function (t) {
   t.deepEqual(Lexer('[]').tokenize(), [
-    { type: 'ReservedChar', rawValue: '[', value: '[' },
-    { type: 'ReservedChar', rawValue: ']', value: ']' }
+    { type: 'ReservedChar', rawValue: '[', value: '[', pos: 0 },
+    { type: 'ReservedChar', rawValue: ']', value: ']', pos: 1 }
   ])
   t.deepEqual(Lexer('{}').tokenize(), [
-    { type: 'ReservedChar', rawValue: '{', value: '{' },
-    { type: 'ReservedChar', rawValue: '}', value: '}' }
+    { type: 'ReservedChar', rawValue: '{', value: '{', pos: 0 },
+    { type: 'ReservedChar', rawValue: '}', value: '}', pos: 1 }
   ])
   t.deepEqual(Lexer('{1 2}').tokenize(), [
-    { type: 'ReservedChar', rawValue: '{', value: '{' },
-    { type: 'IntegerConstant', rawValue: '1', value: 1 },
-    { type: 'IntegerConstant', rawValue: '2', value: 2 },
-    { type: 'ReservedChar', rawValue: '}', value: '}' }
+    { type: 'ReservedChar', rawValue: '{', value: '{', pos: 0 },
+    { type: 'IntegerConstant', rawValue: '1', value: 1, pos: 1 },
+    { type: 'IntegerConstant', rawValue: '2', value: 2, pos: 3 },
+    { type: 'ReservedChar', rawValue: '}', value: '}', pos: 4 }
   ])
   t.end()
 })

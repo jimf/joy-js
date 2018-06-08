@@ -10,10 +10,11 @@ const escapedCharToValue = {
   '\'\\"': '"'
 }
 
-function Token (type, rawValue, value) {
+function Token (type, rawValue, value, pos) {
   this.type = type
   this.rawValue = rawValue
-  this.value = arguments.length === 2 ? rawValue : value
+  this.value = value == null ? rawValue : value
+  this.pos = pos
 }
 
 var NumberFsm = Fsm({
@@ -138,9 +139,9 @@ var StringFsm = Fsm({
 })
 
 function Lexer (input) {
-  var pos = 0
-  var lookahead = input.charAt(pos)
-  var tokenMap = {
+  let pos = 0
+  let lookahead = input.charAt(pos)
+  const tokenMap = {
     '[': 'ReservedChar',
     ']': 'ReservedChar',
     '{': 'ReservedChar',
@@ -169,7 +170,7 @@ function Lexer (input) {
 
   function read (n) {
     n = n || 1
-    var val = peek(n)
+    const val = peek(n)
     if (val.length === n) {
       pos += n
       lookahead = input.charAt(pos)
@@ -187,27 +188,29 @@ function Lexer (input) {
   }
 
   function skipCommentMultiline () {
-    var endPos = input.indexOf('*)', pos)
+    const endPos = input.indexOf('*)', pos)
     if (endPos === -1) { raiseParseError() }
     read((endPos + 2) - pos)
   }
 
   function recognizeNumber () {
-    var result = NumberFsm.run(input.slice(pos))
+    const currPos = pos
+    const result = NumberFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
     if (result.state === 'NumberWithDecimal' || result.state === 'NumberWithExponent') {
-      return new Token('FloatConstant', result.value, parseFloat(result.value))
+      return new Token('FloatConstant', result.value, parseFloat(result.value), currPos)
     } else if (result.state === 'OctalNumber') {
-      return new Token('IntegerConstant', result.value, parseInt(result.value, 8))
+      return new Token('IntegerConstant', result.value, parseInt(result.value, 8), currPos)
     } else if (result.state === 'HexNumber') {
-      return new Token('IntegerConstant', result.value, parseInt(result.value, 16))
+      return new Token('IntegerConstant', result.value, parseInt(result.value, 16), currPos)
     }
-    return new Token('IntegerConstant', result.value, parseInt(result.value, 10))
+    return new Token('IntegerConstant', result.value, parseInt(result.value, 10), currPos)
   }
 
   function recognizeCharacter () {
-    var result = CharacterFsm.run(input.slice(pos))
+    const currPos = pos
+    const result = CharacterFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
     let value
@@ -219,19 +222,21 @@ function Lexer (input) {
       const octal = parseInt(result.value.slice(2), 8)
       value = String.fromCharCode(octal)
     }
-    return new Token('CharacterConstant', result.value, value)
+    return new Token('CharacterConstant', result.value, value, currPos)
   }
 
   function recognizeString () {
-    var result = StringFsm.run(input.slice(pos))
+    const currPos = pos
+    const result = StringFsm.run(input.slice(pos))
     if (result === null) { return null }
     read(result.value.length)
-    return new Token('StringConstant', result.value, result.acc)
+    return new Token('StringConstant', result.value, result.acc, currPos)
   }
 
   function recognizeSymbol () {
-    var currPos = pos
-    var result
+    const startPos = pos
+    let currPos = pos
+    let result
     if (/[a-zA-Z!@$%^&*()\-_+=\\|:<>,?/]/.test(lookahead)) {
       currPos += 1
       while (/[a-zA-Z0-9=_-]/.test(input.charAt(currPos))) {
@@ -239,23 +244,24 @@ function Lexer (input) {
       }
       result = read(currPos - pos)
       if (result === 'true') {
-        return new Token('AtomicSymbol', 'true', true)
+        return new Token('AtomicSymbol', 'true', true, startPos)
       } else if (result === 'false') {
-        return new Token('AtomicSymbol', 'false', false)
+        return new Token('AtomicSymbol', 'false', false, startPos)
       }
-      return new Token(tokenMap[result] || 'AtomicSymbol', result)
+      return new Token(tokenMap[result] || 'AtomicSymbol', result, null, startPos)
     }
     return null
   }
 
   function nextToken () {
-    var token
+    let token
     skipWhitespace()
+    const currPos = pos
     switch (true) {
       case pos >= input.length:
         return null
       case tokenMap[lookahead] === 'ReservedChar':
-        token = new Token('ReservedChar', lookahead)
+        token = new Token('ReservedChar', lookahead, null, currPos)
         read(1)
         return token
       case lookahead === '#':
@@ -279,8 +285,8 @@ function Lexer (input) {
 
   return {
     tokenize: function tokenize () {
-      var result = []
-      var token = nextToken()
+      const result = []
+      let token = nextToken()
       while (token !== null) {
         result.push(token)
         token = nextToken()

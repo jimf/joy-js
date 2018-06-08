@@ -1,5 +1,4 @@
 const Dictionary = require('./dictionary')
-const Lexer = require('../lexer')
 const Parser = require('../parser')
 const T = require('./types')
 
@@ -90,7 +89,7 @@ function Interpreter (stack, options) {
   }
 
   function run (input) {
-    const ast = Parser(Lexer(input)).parse()
+    const ast = Parser().parse(input)
 
     ast.requests.forEach((instructions) => {
       if (instructions.type === 'CompoundDefinition') {
