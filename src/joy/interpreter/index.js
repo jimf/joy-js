@@ -94,6 +94,8 @@ function Interpreter (stack, options) {
     ast.requests.forEach((instructions) => {
       if (instructions.type === 'CompoundDefinition') {
         (instructions.public.definitions || []).forEach((simpleDef) => {
+          // FIXME: certain compound defs are failing here. simpleDef.symbol
+          // undefined. Investigate. See symlib.joy
           definitions.define(simpleDef.symbol.value, {
             name: simpleDef.symbol.value,
             definition: tokenToType(simpleDef)

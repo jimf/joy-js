@@ -97,10 +97,10 @@ function Parser () {
 
   function definitionSequence () {
     const definitions = []
-    let def = simpleDefinition()
+    let def = definition()
     while (def) {
       definitions.push(def)
-      def = match('ReservedChar', ';') && simpleDefinition()
+      def = match('ReservedChar', ';') && definition()
     }
     if (definitions.length) {
       return {
@@ -109,6 +109,10 @@ function Parser () {
       }
     }
     return false
+  }
+
+  function definition () {
+    return simpleDefinition() || compoundDefinition()
   }
 
   function simpleDefinition () {
