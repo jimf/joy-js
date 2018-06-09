@@ -280,11 +280,43 @@ module.exports = execute => [
    * For the latter executes R1, recurses, executes R2.
    */
 
-  /**
-   * step      :  A  [P]  ->  ...
-   * Sequentially putting members of aggregate A onto stack,
-   * executes P for each member of A.
-   */
+  {
+    name: 'step',
+    signature: 'step      :  A  [P]  ->  ...',
+    help: `
+Sequentially putting members of aggregate A onto stack,
+executes P for each member of A.
+`.trim(),
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const P = stack.pop()
+        const A = stack.pop()
+        A.value.forEach((a) => {
+          stack.push(a)
+          stack.push(P)
+          dequote(stack, execute)
+        })
+      }],
+      [['String', 'List'], function (stack) {
+        const P = stack.pop()
+        const A = stack.pop()
+        A.value.split('').forEach((char) => {
+          stack.push(new T.JoyChar(char))
+          stack.push(P)
+          dequote(stack, execute)
+        })
+      }],
+      [['Set', 'List'], function (stack) {
+        const P = stack.pop()
+        const A = stack.pop()
+        A.forEachOrdered((a) => {
+          stack.push(a)
+          stack.push(P)
+          dequote(stack, execute)
+        })
+      }]
+    ]
+  },
 
   {
     name: 'fold',
@@ -300,6 +332,26 @@ and combines with binary operator P to produce value V.
         const A = stack.pop()
         stack.push(seed)
         A.value.forEach((val) => {
+          stack.push(val)
+          dequote(stack, execute, P)
+        })
+      }],
+      [['String', 'Char', 'List'], function (stack) {
+        const P = stack.pop()
+        const seed = stack.pop()
+        const A = stack.pop()
+        stack.push(seed)
+        A.value.split('').forEach((char) => {
+          stack.push(new T.JoyChar(char))
+          dequote(stack, execute, P)
+        })
+      }],
+      [['Set', 'Integer', 'List'], function (stack) {
+        const P = stack.pop()
+        const seed = stack.pop()
+        const A = stack.pop()
+        stack.push(seed)
+        A.forEach((val) => {
           stack.push(val)
           dequote(stack, execute, P)
         })
@@ -325,8 +377,29 @@ collects results in sametype aggregate B.
           result.push(stack.pop())
         })
         stack.push(new T.JoyList(result))
+      }],
+      [['String', 'List'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        let result = ''
+        bottom.value.split('').forEach((char) => {
+          stack.push(new T.JoyChar(char))
+          dequote(stack, execute, top)
+          result += stack.pop().value
+        })
+        stack.push(new T.JoyString(result))
+      }],
+      [['Set', 'List'], function (stack) {
+        const top = stack.pop()
+        const bottom = stack.pop()
+        const result = new T.JoySet([])
+        bottom.forEach((item) => {
+          stack.push(item)
+          dequote(stack, execute, top)
+          result.add(stack.pop())
+        })
+        stack.push(result)
       }]
-      // TODO: Set, String
     ]
   },
 
@@ -373,14 +446,59 @@ For aggregate X uses successive members and combines by C for new R.
 
         stack.push(primrec(stack.pop().value))
       }]
-      // TODO: other aggregates
+      // TODO: String, Set
+    ]
+  },
+
+  {
+    name: 'filter',
+    signature: 'filter      :  A [B]  ->  A1',
+    help: 'Uses test B to filter aggregate A producing sametype aggregate A1.',
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        const result = []
+        A.value.forEach((a) => {
+          stack.push(a)
+          stack.push(B)
+          dequote(stack, execute)
+          if (stack.pop().value) {
+            result.push(a)
+          }
+        })
+        stack.push(new T.JoyList(result))
+      }],
+      [['String', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        let result = ''
+        A.value.split('').forEach((char) => {
+          stack.push(new T.JoyChar(char))
+          stack.push(B)
+          dequote(stack, execute)
+          if (stack.pop().value) {
+            result += char
+          }
+        })
+        stack.push(new T.JoyString(result))
+      }],
+      [['Set', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        const result = new T.JoySet([])
+        A.forEach((a) => {
+          stack.push(a)
+          stack.push(B)
+          dequote(stack, execute)
+          if (stack.pop().value) {
+            result.add(a)
+          }
+        })
+        stack.push(result)
+      }]
     ]
   }
-
-  /**
-   * filter      :  A [B]  ->  A1
-   * Uses test B to filter aggregate A producing sametype aggregate A1.
-   */
 
   /**
    * split      :  A [B]  ->  A1 A2

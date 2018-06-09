@@ -26,6 +26,8 @@ test('Joy examples', (t) => {
     { input: '[1 2 3 4 5] rest  rest  rest  rest  first.', expected: '5' },
     { input: '[1 2 3 4 5] 5 at.', expected: '5' },
     { input: '2000 [1000 >]  [2 /]  [3 *]  ifte .', expected: '1000' },
+    { input: '[]  [2 8 3 6 5]  [swons]  step.', expected: '[5 6 3 8 2]' },
+    { input: '"John Smith"   [\'Z >]   filter .', expected: '"ohnmith"' },
     { input: '[2 5 3]  0  [+]  fold .', expected: '10' },
     { input: '[2 5 3]  0  [dup * +]  fold .', expected: '38' },
     { input: '[3 4 5]    [0 [+] fold]   [size]   cleave   /.', expected: '4' }
