@@ -58,10 +58,22 @@ module.exports = execute => [
     ]
   },
 
-  /**
-   * app1      :  X [P]  ->  R
-   * Executes P, pushes result R on stack without X.
-   */
+  {
+    name: 'app1',
+    signature: 'app1      :  X [P]  ->  R',
+    help: 'Executes P, pushes result R on stack without X.',
+    handlers: [
+      [['*', 'List'], function (stack) {
+        const P = stack.pop()
+        const X = stack.pop()
+        stack.push(stack.restoreAfter(() => {
+          stack.push(X)
+          dequote(stack, execute, P)
+          return stack.pop()
+        }))
+      }]
+    ]
+  },
 
   /**
    * app11      :  X Y [P]  ->  R
@@ -73,24 +85,71 @@ module.exports = execute => [
    * Executes P twice, with Y1 and Y2, returns R1 and R2.
    */
 
-  /**
-   * construct      :  [P] [[P1] [P2] ..]  ->  R1 R2 ..
-   * Saves state of stack and then executes [P].
-   * Then executes each [Pi] to give Ri pushed onto saved stack.
-   */
+  {
+    name: 'construct',
+    signature: 'construct      :  [P] [[P1] [P2] ..]  ->  R1 R2 ..',
+    help: `
+Saves state of stack and then executes [P].
+Then executes each [Pi] to give Ri pushed onto saved stack.
+`.trim(),
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const Ps = stack.pop()
+        const P = stack.pop()
+        const Rs = stack.restoreAfter(() => {
+          const result = []
+          dequote(stack, execute, P)
+          Ps.forEach((p) => {
+            dequote(stack, execute, p)
+            result.push(stack.pop())
+          })
+          return result
+        })
+        Rs.forEach((r) => {
+          stack.push(r)
+        })
+      }]
+    ]
+  },
 
-  /**
-   * nullary      :  [P]  ->  R
-   * Executes P, which leaves R on top of the stack.
-   * No matter how many parameters this consumes, none are removed from the stack.
-   */
+  {
+    name: 'nullary',
+    signature: 'nullary      :  [P]  ->  R',
+    help: `
+Executes P, which leaves R on top of the stack.
+No matter how many parameters this consumes, none are removed from the stack.
+`.trim(),
+    handlers: [
+      [['List'], function (stack) {
+        const P = stack.pop()
+        stack.push(stack.restoreAfter(() => {
+          dequote(stack, execute, P)
+          return stack.pop()
+        }))
+      }]
+    ]
+  },
 
-  /**
-   * unary      :  X [P]  ->  R
-   * Executes P, which leaves R on top of the stack.
-   * No matter how many parameters this consumes,
-   * exactly one is removed from the stack.
-   */
+  {
+    name: 'unary',
+    signature: 'unary      :  X [P]  ->  R',
+    help: `
+Executes P, which leaves R on top of the stack.
+No matter how many parameters this consumes,
+exactly one is removed from the stack.
+`.trim(),
+    handlers: [
+      [['*', 'List'], function (stack) {
+        const P = stack.pop()
+        const X = stack.pop()
+        stack.push(stack.restoreAfter(() => {
+          stack.push(X)
+          dequote(stack, execute, P)
+          return stack.pop()
+        }))
+      }]
+    ]
+  },
 
   /**
    * unary2      :  X1 X2 [P]  ->  R1 R2
@@ -123,19 +182,53 @@ module.exports = execute => [
    * Obsolescent.  == unary4
    */
 
-  /**
-   * binary      :  X Y [P]  ->  R
-   * Executes P, which leaves R on top of the stack.
-   * No matter how many parameters this consumes,
-   * exactly two are removed from the stack.
-   */
+  {
+    name: 'binary',
+    signature: 'binary      :  X Y [P]  ->  R',
+    help: `
+Executes P, which leaves R on top of the stack.
+No matter how many parameters this consumes,
+exactly two are removed from the stack.
+`.trim(),
+    handlers: [
+      [['*', '*', 'List'], function (stack) {
+        const P = stack.pop()
+        const Y = stack.pop()
+        const X = stack.pop()
+        stack.push(stack.restoreAfter(() => {
+          stack.push(X)
+          stack.push(Y)
+          dequote(stack, execute, P)
+          return stack.pop()
+        }))
+      }]
+    ]
+  },
 
-  /**
-   * ternary      :  X Y Z [P]  ->  R
-   * Executes P, which leaves R on top of the stack.
-   * No matter how many parameters this consumes,
-   * exactly three are removed from the stack.
-   */
+  {
+    name: 'ternary',
+    signature: 'ternary      :  X Y Z [P]  ->  R',
+    help: `
+Executes P, which leaves R on top of the stack.
+No matter how many parameters this consumes,
+exactly three are removed from the stack.
+`.trim(),
+    handlers: [
+      [['*', '*', '*', 'List'], function (stack) {
+        const P = stack.pop()
+        const Z = stack.pop()
+        const Y = stack.pop()
+        const X = stack.pop()
+        stack.push(stack.restoreAfter(() => {
+          stack.push(X)
+          stack.push(Y)
+          stack.push(Z)
+          dequote(stack, execute, P)
+          return stack.pop()
+        }))
+      }]
+    ]
+  },
 
   {
     name: 'cleave',
@@ -194,51 +287,137 @@ module.exports = execute => [
     ]
   },
 
-  /**
-   * ifinteger      :  X [T] [E]  ->  ...
-   * If X is an integer, executes T else executes E.
-   */
+  {
+    name: 'ifinteger',
+    signature: 'ifinteger      :  X [T] [E]  ->  ...',
+    help: 'If X is an integer, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isInteger ? T : E)
+      }]
+    ]
+  },
 
-  /**
-   * ifchar      :  X [T] [E]  ->  ...
-   * If X is a character, executes T else executes E.
-   */
+  {
+    name: 'ifchar',
+    signature: 'ifchar      :  X [T] [E]  ->  ...',
+    help: 'If X is a character, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isCharacter ? T : E)
+      }]
+    ]
+  },
 
-  /**
-   * iflogical      :  X [T] [E]  ->  ...
-   * If X is a logical or truth value, executes T else executes E.
-   */
+  {
+    name: 'iflogical',
+    signature: 'iflogical      :  X [T] [E]  ->  ...',
+    help: 'If X is a logical or truth value, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isBool ? T : E)
+      }]
+    ]
+  },
 
-  /**
-   * ifset      :  X [T] [E]  ->  ...
-   * If X is a set, executes T else executes E.
-   */
+  {
+    name: 'ifset',
+    signature: 'ifset      :  X [T] [E]  ->  ...',
+    help: 'If X is a set, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isSet ? T : E)
+      }]
+    ]
+  },
 
-  /**
-   * ifstring      :  X [T] [E]  ->  ...
-   * If X is a string, executes T else executes E.
-   */
+  {
+    name: 'ifstring',
+    signature: 'ifstring      :  X [T] [E]  ->  ...',
+    help: 'If X is a string, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isString ? T : E)
+      }]
+    ]
+  },
 
-  /**
-   * iflist      :  X [T] [E]  ->  ...
-   * If X is a list, executes T else executes E.
-   */
+  {
+    name: 'iflist',
+    signature: 'iflist      :  X [T] [E]  ->  ...',
+    help: 'If X is a list, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isList ? T : E)
+      }]
+    ]
+  },
 
-  /**
-   * iffloat      :  X [T] [E]  ->  ...
-   * If X is a float, executes T else executes E.
-   */
+  {
+    name: 'iffloat',
+    signature: 'iffloat      :  X [T] [E]  ->  ...',
+    help: 'If X is a float, executes T else executes E.',
+    handlers: [
+      [['*', 'List', 'List'], function (stack) {
+        const E = stack.pop()
+        const T = stack.pop()
+        const X = stack.pop()
+        dequote(stack, execute, X.isFloat ? T : E)
+      }]
+    ]
+  },
 
   /**
    * iffile      :  X [T] [E]  ->  ...
    * If X is a file, executes T else executes E.
+   * TODO
    */
 
-  /**
-   * cond      :  [..[[Bi] Ti]..[D]]  ->  ...
-   * Tries each Bi. If that yields true, then executes Ti and exits.
-   * If no Bi yields true, executes default D.
-   */
+  {
+    name: 'cond',
+    signature: 'cond      :  [..[[Bi] Ti]..[D]]  ->  ...',
+    help: `
+Tries each Bi. If that yields true, then executes Ti and exits.
+If no Bi yields true, executes default D.
+`.trim(),
+    handlers: [
+      [['List'], function (stack) {
+        const top = stack.pop()
+        for (let i = 0, len = top.value.length - 1; i < len; i += 1) {
+          const result = stack.restoreAfter(() => {
+            stack.push(top.value[i].value[0])
+            dequote(stack, execute)
+            return stack.pop().value
+          })
+          if (result) {
+            stack.push(top.value[i].value[1])
+            execute()
+            return
+          }
+        }
+        stack.push(top.value[top.value.length - 1])
+        dequote(stack, execute)
+      }]
+    ]
+  },
 
   /**
    * while      :  [B] [D]  ->  ...
