@@ -442,11 +442,45 @@ If no Bi yields true, executes default D.
     ]
   },
 
-  /**
-   * linrec      :  [P] [T] [R1] [R2]  ->  ...
-   * Executes P. If that yields true, executes T.
-   * Else executes R1, recurses, executes R2.
-   */
+  {
+    name: 'linrec',
+    signature: 'linrec      :  [P] [T] [R1] [R2]  ->  ...',
+    help: `
+Executes P. If that yields true, executes T.
+Else executes R1, recurses, executes R2.
+`.trim(),
+    handlers: [
+      [['List', 'List', 'List', 'List'], function (stack) {
+        const R2 = stack.pop()
+        const R1 = stack.pop()
+        const T = stack.pop()
+        const P = stack.pop()
+        let n = 0
+
+        // NOTE: Not sure if this approach is exactly right. It works for
+        // calculating factorial. Not sure if it works generically. Approach
+        // effectively does an unfold, followed by a fold. I suspect there is
+        // a way to do this that uses constant space.
+        while (true) {
+          const result = stack.restoreAfter(() => {
+            dequote(stack, execute, P)
+            return stack.pop().value
+          })
+          if (result) {
+            dequote(stack, execute, T)
+            break
+          } else {
+            dequote(stack, execute, R1)
+            n += 1
+          }
+        }
+        while (n > 0) {
+          dequote(stack, execute, R2)
+          n -= 1
+        }
+      }]
+    ]
+  },
 
   /**
    * tailrec      :  [P] [T] [R1]  ->  ...
