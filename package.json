@@ -7,6 +7,10 @@
     "url": "https://github.com/jimf/joy-js"
   },
   "scripts": {
+    "build": "rimraf dist && mkdir dist && cp static/index.html dist && npm run build-js && npm run build-css",
+    "build-js": "browserify static/index.js | minify > dist/main.js",
+    "build-css": "uglifycss static/styles.css > dist/styles.css",
+    "deploy": "gh-pages -d dist",
     "lint": "standard",
     "pretest": "npm run lint",
     "start": "budo ./static/index.js --dir=./static --live --open --host=0.0.0.0",
@@ -25,13 +29,16 @@
     "url": "https://github.com/jimf/joy-js/issues"
   },
   "homepage": "https://github.com/jimf/joy-js",
-  "dependencies": {
-    "uparse": "^0.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "babel-minify": "^0.4.3",
+    "browserify": "^16.2.2",
     "budo": "^11.2.2",
+    "gh-pages": "^1.2.0",
     "nyc": "^11.8.0",
+    "rimraf": "^2.6.2",
     "standard": "^11.0.1",
-    "tape": "^4.9.0"
+    "tape": "^4.9.0",
+    "uglifycss": "0.0.29"
   }
 }

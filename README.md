@@ -17,7 +17,7 @@ A JavaScript interpreter for the [Joy][] programming language.
 - [ ] Demo site (simple site available, must run locally)
   - [x] Basic site
   - [ ] Make responsive
-  - [ ] Publish to GitHub pages
+  - [x] Publish to GitHub pages
   - [ ] Syntax-highlighted editor
   - [ ] Add output options
   - [ ] Joy tutorial or similar?
