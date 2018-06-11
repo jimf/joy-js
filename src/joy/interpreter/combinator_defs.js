@@ -419,10 +419,28 @@ If no Bi yields true, executes default D.
     ]
   },
 
-  /**
-   * while      :  [B] [D]  ->  ...
-   * While executing B yields true executes D.
-   */
+  {
+    name: 'while',
+    signature: 'while      :  [B] [D]  ->  ...',
+    help: 'While executing B yields true executes D.',
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const D = stack.pop()
+        const B = stack.pop()
+        while (true) {
+          const result = stack.restoreAfter(() => {
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+          if (result) {
+            dequote(stack, execute, D)
+          } else {
+            break
+          }
+        }
+      }]
+    ]
+  },
 
   /**
    * linrec      :  [P] [T] [R1] [R2]  ->  ...
@@ -582,10 +600,20 @@ collects results in sametype aggregate B.
     ]
   },
 
-  /**
-   * times      :  N [P]  ->  ...
-   * N times executes P.
-   */
+  {
+    name: 'times',
+    signature: 'times      :  N [P]  ->  ...',
+    help: 'N times executes P.',
+    handlers: [
+      [['Integer', 'List'], function (stack) {
+        const P = stack.pop()
+        const N = stack.pop()
+        for (let i = 0; i < N.value; i += 1) {
+          dequote(stack, execute, P)
+        }
+      }]
+    ]
+  },
 
   /**
    * infra      :  L1 [P]  ->  L2
@@ -677,22 +705,175 @@ For aggregate X uses successive members and combines by C for new R.
         stack.push(result)
       }]
     ]
+  },
+
+  {
+    name: 'split',
+    signature: 'split      :  A [B]  ->  A1 A2',
+    help: 'Uses test B to split aggregate A into sametype aggregates A1 and A2 .',
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        const A1 = []
+        const A2 = []
+        A.value.forEach((a) => {
+          stack.push(a)
+          stack.push(B)
+          dequote(stack, execute)
+          if (stack.pop().value) {
+            A1.push(a)
+          } else {
+            A2.push(a)
+          }
+        })
+        stack.push(new T.JoyList(A1))
+        stack.push(new T.JoyList(A2))
+      }],
+      [['String', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        let A1 = ''
+        let A2 = ''
+        A.value.split('').forEach((char) => {
+          stack.push(new T.JoyChar(char))
+          stack.push(B)
+          dequote(stack, execute)
+          if (stack.pop().value) {
+            A1 += char
+          } else {
+            A2 += char
+          }
+        })
+        stack.push(new T.JoyString(A1))
+        stack.push(new T.JoyString(A2))
+      }],
+      [['Set', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        const A1 = new T.JoySet([])
+        const A2 = new T.JoySet([])
+        A.forEach((a) => {
+          stack.push(a)
+          stack.push(B)
+          dequote(stack, execute)
+          if (stack.pop().value) {
+            A1.add(a)
+          } else {
+            A2.add(a)
+          }
+        })
+        stack.push(A1)
+        stack.push(A2)
+      }]
+    ]
+  },
+
+  {
+    name: 'some',
+    signature: 'some      :  A  [B]  ->  X',
+    help: 'Applies test B to members of aggregate A, X = true if some pass.',
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        for (let i = 0, len = A.value.length; i < len; i += 1) {
+          const result = stack.restoreAfter(() => {
+            stack.push(A.value[i])
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+          if (result) {
+            stack.push(new T.JoyBool(true))
+            return
+          }
+        }
+        stack.push(new T.JoyBool(false))
+      }],
+      [['String', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        for (let i = 0, len = A.value.length; i < len; i += 1) {
+          const result = stack.restoreAfter(() => {
+            stack.push(new T.JoyChar(A.value.charAt([i])))
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+          if (result) {
+            stack.push(new T.JoyBool(true))
+            return
+          }
+        }
+        stack.push(new T.JoyBool(false))
+      }],
+      [['Set', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        let result = false
+        A.forEach((a) => {
+          result = result || stack.restoreAfter(() => {
+            stack.push(a)
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+        })
+        stack.push(new T.JoyBool(result))
+      }]
+    ]
+  },
+
+  {
+    name: 'all',
+    signature: 'all      :  A [B]  ->  X',
+    help: 'Applies test B to members of aggregate A, X = true if all pass.',
+    handlers: [
+      [['List', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        for (let i = 0, len = A.value.length; i < len; i += 1) {
+          const result = stack.restoreAfter(() => {
+            stack.push(A.value[i])
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+          if (!result) {
+            stack.push(new T.JoyBool(false))
+            return
+          }
+        }
+        stack.push(new T.JoyBool(true))
+      }],
+      [['String', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        for (let i = 0, len = A.value.length; i < len; i += 1) {
+          const result = stack.restoreAfter(() => {
+            stack.push(new T.JoyChar(A.value.charAt([i])))
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+          if (!result) {
+            stack.push(new T.JoyBool(false))
+            return
+          }
+        }
+        stack.push(new T.JoyBool(true))
+      }],
+      [['Set', 'List'], function (stack) {
+        const B = stack.pop()
+        const A = stack.pop()
+        let result = true
+        A.forEach((a) => {
+          result = result && stack.restoreAfter(() => {
+            stack.push(a)
+            dequote(stack, execute, B)
+            return stack.pop().value
+          })
+        })
+        stack.push(new T.JoyBool(result))
+      }]
+    ]
   }
-
-  /**
-   * split      :  A [B]  ->  A1 A2
-   * Uses test B to split aggregate A into sametype aggregates A1 and A2 .
-   */
-
-  /**
-   * some      :  A  [B]  ->  X
-   * Applies test B to members of aggregate A, X = true if some pass.
-   */
-
-  /**
-   * all      :  A [B]  ->  X
-   * Applies test B to members of aggregate A, X = true if all pass.
-   */
 
   /**
    * treestep      :  T [P]  ->  ...
