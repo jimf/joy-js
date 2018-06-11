@@ -79,3 +79,19 @@ textarea[name=input]:focus {
   padding: 10px;
   white-space: pre;
 }
+
+@media (max-width: 768px) {
+  .sections {
+    flex-flow: row wrap;
+  }
+
+  .sections > div {
+    height: 50%;
+    width: 100%;
+  }
+
+  .input-section {
+    border-right: none;
+    border-bottom: 1px solid #2d333b;
+  }
+}

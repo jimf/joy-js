@@ -16,7 +16,7 @@ A JavaScript interpreter for the [Joy][] programming language.
   - [ ] "Miscellaneous" words defined
 - [ ] Demo site (simple site available, must run locally)
   - [x] Basic site
-  - [ ] Make responsive
+  - [x] Make responsive
   - [x] Publish to GitHub pages
   - [ ] Syntax-highlighted editor
   - [ ] Add output options
