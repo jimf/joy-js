@@ -116,6 +116,9 @@ function JoyString (value) {
   JoyBase.call(this, value)
   this.isString = true
   this.isAggregate = true
+  Object.defineProperty(this, 'length', {
+    get: () => this.value.length
+  })
 }
 JoyString.prototype = Object.create(JoyBase.prototype)
 JoyString.prototype.constructor = JoyString
@@ -154,6 +157,9 @@ function JoyList (value) {
   JoyBase.call(this, value)
   this.isList = true
   this.isAggregate = true
+  Object.defineProperty(this, 'length', {
+    get: () => this.value.length
+  })
 }
 JoyList.prototype = Object.create(JoyBase.prototype)
 JoyList.prototype.constructor = JoyList
