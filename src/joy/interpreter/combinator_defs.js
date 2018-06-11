@@ -482,11 +482,34 @@ Else executes R1, recurses, executes R2.
     ]
   },
 
-  /**
-   * tailrec      :  [P] [T] [R1]  ->  ...
-   * Executes P. If that yields true, executes T.
-   * Else executes R1, recurses.
-   */
+  {
+    name: 'tailrec',
+    signature: 'tailrec      :  [P] [T] [R1]  ->  ...',
+    help: `
+Executes P. If that yields true, executes T.
+Else executes R1, recurses.
+`.trim(),
+    handlers: [
+      [['List', 'List', 'List'], function (stack) {
+        const R1 = stack.pop()
+        const T = stack.pop()
+        const P = stack.pop()
+
+        while (true) {
+          const result = stack.restoreAfter(() => {
+            dequote(stack, execute, P)
+            return stack.pop().value
+          })
+          if (result) {
+            dequote(stack, execute, T)
+            break
+          } else {
+            dequote(stack, execute, R1)
+          }
+        }
+      }]
+    ]
+  },
 
   /**
    * binrec      :  [B] [T] [R1] [R2]  ->  ...
