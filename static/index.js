@@ -1,17 +1,41 @@
 const Joy = require('../src/joy/joy')
 
+function InputHistory () {
+  const history = []
+  let pointer = 0
+
+  function append (input) {
+    history.push(input)
+    pointer = history.length
+  }
+
+  function prev () {
+    if (pointer > 0) { pointer -= 1 }
+    return history[pointer]
+  }
+
+  function next () {
+    if (pointer < history.length) { pointer += 1 }
+    return history[pointer]
+  }
+
+  return {
+    append: append,
+    prev: prev,
+    next: next
+  }
+}
+
 const inputEl = document.querySelector('[name=input]')
 const outputEl = document.querySelector('.output-result')
-const history = []
+const history = InputHistory()
 const joy = Joy()
-let pointer
 
 function runInput (input) {
   try {
     const result = joy.run(input)
     outputEl.textContent = result
-    history.push(input)
-    pointer = history.length - 1
+    history.append(input)
     inputEl.value = ''
   } catch (e) {
     outputEl.textContent = e.toString()
@@ -20,13 +44,11 @@ function runInput (input) {
 }
 
 function prevInput () {
-  if (pointer > 0) { pointer -= 1 }
-  inputEl.value = history[pointer] || ''
+  inputEl.value = history.prev() || ''
 }
 
 function nextInput () {
-  if (pointer < history.length) { pointer += 1 }
-  inputEl.value = history[pointer] || ''
+  inputEl.value = history.next() || ''
 }
 
 function onInputKeydown (e) {
