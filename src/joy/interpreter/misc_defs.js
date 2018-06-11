@@ -25,7 +25,7 @@ Then lists all primitives of raw Joy
         // NOTE: Not sure about proper ordering, or what definitions are considered primitive.
         const defs = opts.dictionary.keys()
         defs.reverse()
-        opts.output(fitToWidth(defs, 72))
+        opts.output(`${fitToWidth(defs, 72)}\n`)
       }]
     ]
   },
