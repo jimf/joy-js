@@ -30,7 +30,7 @@ function nextInput () {
 }
 
 function onInputKeydown (e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
+  if (e.which === 13 /* Enter */ && !e.shiftKey) {
     e.preventDefault()
     runInput(inputEl.value.trim())
   } else if (e.key === 'p' && e.ctrlKey) {
