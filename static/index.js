@@ -4,9 +4,13 @@ function InputHistory () {
   const history = []
   let pointer = 0
 
+  function reset () {
+    pointer = history.length
+  }
+
   function append (input) {
     history.push(input)
-    pointer = history.length
+    reset()
   }
 
   function prev () {
@@ -22,7 +26,8 @@ function InputHistory () {
   return {
     append: append,
     prev: prev,
-    next: next
+    next: next,
+    reset: reset
   }
 }
 
@@ -51,6 +56,11 @@ function nextInput () {
   inputEl.value = history.next() || ''
 }
 
+function resetInput () {
+  history.reset()
+  inputEl.value = ''
+}
+
 function onInputKeydown (e) {
   if (e.which === 13 /* Enter */ && !e.shiftKey) {
     e.preventDefault()
@@ -61,6 +71,9 @@ function onInputKeydown (e) {
   } else if (e.key === 'n' && e.ctrlKey) {
     e.preventDefault()
     nextInput()
+  } else if (e.key === 'c' && e.ctrlKey) {
+    e.preventDefault()
+    resetInput()
   }
 }
 
