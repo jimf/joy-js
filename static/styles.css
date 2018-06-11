@@ -80,7 +80,7 @@ textarea[name=input]:focus {
   white-space: pre;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   .sections {
     flex-flow: row wrap;
   }
