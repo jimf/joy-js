@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "rimraf dist && mkdir dist && cp static/index.html dist && npm run build-js && npm run build-css",
-    "build-js": "browserify static/index.js | minify > dist/main.js",
+    "build-js": "browserify static/index.js | minify > dist/index.js",
     "build-css": "uglifycss static/styles.css > dist/styles.css",
     "deploy": "gh-pages -d dist",
     "lint": "standard",
